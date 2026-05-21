@@ -1,0 +1,12 @@
+{
+  "name": "flow-net-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FLOW-NET public site with Railway-friendly runtime config",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

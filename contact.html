@@ -15,6 +15,7 @@
     rel="stylesheet"
   />
   <link rel="stylesheet" href="style.css" />
+  <script defer src="config.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body data-page="contact">
@@ -55,7 +56,7 @@
       <div class="container hero-subpage-grid">
         <div data-reveal>
           <p class="eyebrow">Contact FLOW-NET</p>
-          <h1>Let’s connect and turn the idea into something useful.</h1>
+          <h1>Let's connect and turn the idea into something useful.</h1>
           <p class="lead">
             If you need a website, a customer flow, a dashboard, a bot, or a
             backend-connected business tool, this is the place to start.
@@ -66,8 +67,8 @@
             and without unnecessary layers.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="mailto:letscrypto25@gmail.com">Email FLOW-NET</a>
-            <a class="button button-secondary" href="https://t.me/Letscrypto_bot" target="_blank" rel="noreferrer">Try Telegram demo</a>
+            <a class="button button-primary" href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL">Email FLOW-NET</a>
+            <a class="button button-secondary" href="portfolio.html">See live projects</a>
           </div>
         </div>
 
@@ -77,7 +78,7 @@
           <ul class="signal-list">
             <li>Email for project details, scope, and longer context.</li>
             <li>Phone for direct discussion and quick follow-up.</li>
-            <li>Telegram if you want to see the bot direction in action.</li>
+            <li>Live project links if you want to see current deployed work.</li>
           </ul>
         </aside>
       </div>
@@ -91,19 +92,19 @@
           <ul class="contact-list">
             <li>
               <span>Email</span>
-              <a href="mailto:letscrypto25@gmail.com">letscrypto25@gmail.com</a>
+              <a href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL" data-config-text="CONTACT_EMAIL">hello@flow-net.dev</a>
             </li>
             <li>
               <span>Phone</span>
-              <a href="tel:+27659821883">+27 65 982 1883</a>
+              <a href="tel:+27650000000" data-config-tel="CONTACT_PHONE" data-config-text="CONTACT_PHONE_LABEL">+27 65 000 0000</a>
             </li>
             <li>
-              <span>GitHub</span>
-              <a href="https://letscrypto25.github.io" target="_blank" rel="noreferrer">letscrypto25.github.io</a>
+              <span>Website</span>
+              <a href="https://flow-net.up.railway.app" data-config-href="SITE_URL" data-config-text="SITE_NAME">FLOW-NET</a>
             </li>
             <li>
-              <span>Telegram demo</span>
-              <a href="https://t.me/Letscrypto_bot" target="_blank" rel="noreferrer">t.me/Letscrypto_bot</a>
+              <span>Live projects</span>
+              <a href="portfolio.html">See the project lineup</a>
             </li>
           </ul>
         </article>
@@ -159,26 +160,31 @@
     <section class="section-block">
       <div class="container spotlight">
         <article class="surface-card spotlight-copy" data-reveal>
-          <p class="eyebrow">Telegram demo</p>
-          <h2>Try the current bot direction.</h2>
+          <p class="eyebrow">Live projects</p>
+          <h2>Try the current Railway-hosted project lineup.</h2>
           <p>
-            The Telegram demo gives a quick feel for how FLOW-NET thinks about
-            customer interaction, guided flows, and lightweight support logic.
+            FLOW-NET now advertises the current showcase apps directly: the AAA
+            horse race predictor, the PIZZA_SHOP ordering app, THE_BAKERY demo,
+            the LOMBICOR recruitment portal, and DISJOINTED_SHOP.
           </p>
-          <p>
-            <a class="text-link" href="https://t.me/Letscrypto_bot" target="_blank" rel="noreferrer">Open the Telegram bot</a>
-            <br />
-            <small><code>/start</code> and <code>/help</code> are live.</small>
-          </p>
+          <div class="footer-links">
+            <a href="https://aaa-demo-url.up.railway.app" data-config-href="PROJECT_ONE_URL" data-config-text="PROJECT_ONE_NAME">AAA</a>
+            <a href="https://pizza-shop-demo-url.up.railway.app" data-config-href="PROJECT_TWO_URL" data-config-text="PROJECT_TWO_NAME">PIZZA_SHOP</a>
+            <a href="https://the-bakery-demo-url.up.railway.app" data-config-href="PROJECT_THREE_URL" data-config-text="PROJECT_THREE_NAME">THE_BAKERY</a>
+            <a href="https://lombicor-demo-url.up.railway.app" data-config-href="PROJECT_FOUR_URL" data-config-text="PROJECT_FOUR_NAME">LOMBICOR_RECRUITMENT</a>
+            <a href="https://disjointed-demo-url.up.railway.app" data-config-href="PROJECT_FIVE_URL" data-config-text="PROJECT_FIVE_NAME">DISJOINTED_SHOP</a>
+          </div>
+          <p><small>Each live URL still comes from the public environment config.</small></p>
         </article>
 
         <article class="surface-card" data-reveal>
-          <h3>Working style</h3>
+          <h3>What visitors can test</h3>
           <ul class="plain-list">
-            <li>Direct communication with the developer.</li>
-            <li>Practical scoping before unnecessary complexity.</li>
-            <li>Builds aimed at real use, not just visual polish.</li>
-            <li>Clear next steps after the first conversation.</li>
+            <li>AAA for prediction-focused dashboard logic.</li>
+            <li>PIZZA_SHOP for menu, cart, and checkout flow.</li>
+            <li>THE_BAKERY for local food brand presentation.</li>
+            <li>LOMBICOR for applicant intake and admin review.</li>
+            <li>DISJOINTED_SHOP for storefront and order management.</li>
           </ul>
         </article>
       </div>
@@ -196,8 +202,8 @@
             </p>
           </div>
           <div class="cta-actions">
-            <a class="button button-primary light" href="mailto:letscrypto25@gmail.com">Email now</a>
-            <a class="button button-secondary light" href="tel:+27659821883">Call now</a>
+            <a class="button button-primary light" href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL">Email now</a>
+            <a class="button button-secondary light" href="tel:+27650000000" data-config-tel="CONTACT_PHONE">Call now</a>
           </div>
         </div>
       </div>
@@ -229,9 +235,9 @@
         <div>
           <h3>Contact</h3>
           <div class="footer-links">
-            <a href="mailto:letscrypto25@gmail.com">letscrypto25@gmail.com</a>
-            <a href="tel:+27659821883">+27 65 982 1883</a>
-            <a href="https://t.me/Letscrypto_bot" target="_blank" rel="noreferrer">Telegram demo</a>
+            <a href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL" data-config-text="CONTACT_EMAIL">hello@flow-net.dev</a>
+            <a href="tel:+27650000000" data-config-tel="CONTACT_PHONE" data-config-text="CONTACT_PHONE_LABEL">+27 65 000 0000</a>
+            <a href="portfolio.html">Try live projects</a>
           </div>
         </div>
       </div>

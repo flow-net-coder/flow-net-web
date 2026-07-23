@@ -389,12 +389,39 @@ const server = http.createServer((req, res) => {
       }
 
       // Resolve uploaded file paths robustly across formidable versions.
-      function resolveUploadedPath(file) {
+      function resolveUploadedPath(file, depth = 0) {
         if (!file) return null;
+        // Avoid deep recursion
+        if (depth > 4) return null;
+
+        // If it's an array-like or object with numeric keys, try entries
+        if (Array.isArray(file)) {
+          for (const f of file) {
+            const p = resolveUploadedPath(f, depth + 1);
+            if (p) return p;
+          }
+        }
+        if (typeof file === 'object') {
+          // numeric keys case: { '0': { ... } }
+          const keys = Object.keys(file || {});
+          const numericKey = keys.find((k) => /^\d+$/.test(k));
+          if (numericKey) {
+            const nested = file[numericKey];
+            const p = resolveUploadedPath(nested, depth + 1);
+            if (p) return p;
+          }
+        }
+
+        if (typeof file === 'string') {
+          if (fs.existsSync(file)) return file;
+          return null;
+        }
+
         if (file.filepath && fs.existsSync(file.filepath)) return file.filepath;
         if (file.path && fs.existsSync(file.path)) return file.path;
         if (file.filePath && fs.existsSync(file.filePath)) return file.filePath;
-        // Some upload handlers may include a buffer property — write to temp file.
+
+        // Buffer upload fallback
         if (file.buffer && Buffer.isBuffer(file.buffer) && file.originalFilename) {
           const tmp = path.join(require('os').tmpdir(), `upload-${Date.now()}-${safeName(file.originalFilename)}`);
           try {
@@ -405,24 +432,60 @@ const server = http.createServer((req, res) => {
             return null;
           }
         }
-        // Try enumerating plausible props
-        for (const p of Object.keys(file)) {
-          if (typeof file[p] === 'string' && (p.toLowerCase().includes('path') || p.toLowerCase().includes('file'))) {
-            try {
+
+        // Try enumerating plausible props for strings pointing to paths
+        for (const p of Object.keys(file || {})) {
+          try {
+            if (typeof file[p] === 'string' && (p.toLowerCase().includes('path') || p.toLowerCase().includes('file'))) {
               if (fs.existsSync(file[p])) return file[p];
-            } catch (e) {}
-          }
+            }
+            // nested objects
+            if (typeof file[p] === 'object') {
+              const nested = resolveUploadedPath(file[p], depth + 1);
+              if (nested) return nested;
+            }
+          } catch (e) {}
         }
+
         return null;
       }
 
       const envPath = resolveUploadedPath(envFile);
       const zipPath = resolveUploadedPath(codeFile);
       if (!envPath || !zipPath) {
-        console.error('Publish missing uploaded file paths', { envFile: Object.keys(envFile || {}), codeFile: Object.keys(codeFile || {}) });
+        // Write a small diagnostic summary to tmp for debugging (no file contents)
+        try {
+          const diag = {
+            time: new Date().toISOString(),
+            envFileKeys: envFile ? Object.keys(envFile) : null,
+            codeFileKeys: codeFile ? Object.keys(codeFile) : null,
+            envFileSample: envFile && typeof envFile === 'object' ? summarizeFileObject(envFile) : null,
+            codeFileSample: codeFile && typeof codeFile === 'object' ? summarizeFileObject(codeFile) : null,
+          };
+          const diagPath = path.join(require('os').tmpdir(), `flownet-upload-diag-${Date.now()}.json`);
+          fs.writeFileSync(diagPath, JSON.stringify(diag, null, 2));
+          console.error('Publish missing uploaded file paths', diag);
+        } catch (e) {
+          console.error('Failed writing upload diagnostic', e);
+        }
+
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: 'Uploaded files were not received correctly.' }));
         return;
+      }
+
+      function summarizeFileObject(obj) {
+        const out = {};
+        try {
+          for (const k of Object.keys(obj || {})) {
+            const v = obj[k];
+            out[k] = { type: typeof v };
+            if (v && typeof v === 'object') {
+              out[k].keys = Object.keys(v).slice(0, 10);
+            }
+          }
+        } catch (e) {}
+        return out;
       }
 
       const cleanup = () => {

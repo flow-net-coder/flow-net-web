@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const formidable = require('formidable');
 const unzipper = require('unzipper');
+const child_process = require('child_process');
 
 const rootDir = __dirname;
 const port = Number.parseInt(process.env.PORT || '3000', 10);
@@ -198,6 +199,28 @@ function proxyToWhatb(req, res) {
   req.pipe(proxyReq, { end: true });
 }
 
+function proxyToLocalHost(host, port, req, res) {
+  const originalUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  const proxyPath = originalUrl.pathname.replace(/^\/live\/[A-Za-z0-9_-]+/, '') || '/';
+  const target = `http://${host}:${port}${proxyPath}${originalUrl.search}`;
+
+  const requestFn = target.startsWith('https:') ? require('https').request : require('http').request;
+  const proxyReq = requestFn(target, {
+    method: req.method,
+    headers: { ...req.headers, host: `${host}:${port}` },
+  }, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode || 500, { ...proxyRes.headers });
+    proxyRes.pipe(res, { end: true });
+  });
+
+  proxyReq.on('error', (error) => {
+    res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end(`Proxy error: ${error.message}`);
+  });
+
+  req.pipe(proxyReq, { end: true });
+}
+
 function resolveStaticFile(requestPath) {
   let targetPath = requestPath === '/' ? '/index.html' : requestPath;
 
@@ -209,6 +232,10 @@ function resolveStaticFile(requestPath) {
   }
 
   const absolutePath = path.normalize(path.join(rootDir, targetPath));
+  // Block any paths containing dotfiles (e.g., /.env or /static/.secret)
+  if (absolutePath.split(path.sep).some((p) => p.startsWith('.'))) {
+    return null;
+  }
   if (!absolutePath.startsWith(rootDir)) {
     return null;
   }
@@ -249,6 +276,26 @@ const server = http.createServer((req, res) => {
     const filePath = segments.length > 0 ? path.join(publishFolder, segments.join('/')) : path.join(publishFolder, 'index.html');
     const normalizedPath = path.normalize(filePath);
 
+    // Block any attempts to access dotfiles inside published apps
+    if (normalizedPath.split(path.sep).some((p) => p.startsWith('.'))) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Published app not found.');
+      return;
+    }
+    // If this published app is running in a container, proxy to it
+    try {
+      const metaPath = path.join(publishFolder, 'meta.json');
+      if (fs.existsSync(metaPath)) {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        if (meta && meta.container && meta.container.hostPort) {
+          proxyToLocalHost('127.0.0.1', meta.container.hostPort, req, res);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error reading meta for live app proxy:', e);
+    }
+
     if (!normalizedPath.startsWith(publishFolder) || !fs.existsSync(normalizedPath)) {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Published app not found.');
@@ -275,8 +322,13 @@ const server = http.createServer((req, res) => {
     const form = new formidable.IncomingForm({ multiples: false, keepExtensions: true });
     ensurePublishedRoot();
 
+    form.on('error', (error) => {
+      console.error('Publish form error:', error);
+    });
+
     form.parse(req, async (err, fields, files) => {
       if (err) {
+        console.error('Publish parse error:', err);
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: err.message }));
         return;
@@ -300,56 +352,131 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      fs.mkdirSync(destination, { recursive: true });
-
-      const envTargetPath = path.join(destination, '.env');
-      fs.copyFileSync(envFile.filepath || envFile.path, envTargetPath);
-
-      const publishMeta = {
-        appName,
-        publishId,
-        description: String(fields.description || fields.notes || '').trim(),
-        createdAt: new Date().toISOString(),
-        liveUrl: `/live/${publishId}/`,
-      };
-
-      const metaTargetPath = path.join(destination, 'meta.json');
-      fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
-
-      const zipStream = fs.createReadStream(codeFile.filepath || codeFile.path).pipe(unzipper.Parse());
-      let unzipError = null;
-      for await (const entry of zipStream) {
-        const target = normalizePublishedPath(destination, entry.path);
-        if (!target) {
-          unzipError = new Error('Zip contains unsafe file paths.');
-          entry.autodrain();
-          continue;
-        }
-
-        if (entry.type === 'Directory') {
-          fs.mkdirSync(target, { recursive: true });
-          entry.autodrain();
-          continue;
-        }
-
-        fs.mkdirSync(path.dirname(target), { recursive: true });
-        await new Promise((resolve, reject) => {
-          const writeStream = fs.createWriteStream(target);
-          entry.pipe(writeStream);
-          writeStream.on('finish', resolve);
-          writeStream.on('error', reject);
-        });
-      }
-
-      if (unzipError) {
+      const envPath = envFile.filepath || envFile.path;
+      const zipPath = codeFile.filepath || codeFile.path;
+      if (!envPath || !zipPath) {
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: unzipError.message }));
+        res.end(JSON.stringify({ ok: false, error: 'Uploaded files were not received correctly.' }));
         return;
       }
 
-      const liveUrl = publishMeta.liveUrl;
-      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: true, liveUrl, publishId, appName, description: publishMeta.description }));
+      const cleanup = () => {
+        if (fs.existsSync(destination)) {
+          fs.rmSync(destination, { recursive: true, force: true });
+        }
+      };
+
+      try {
+        fs.mkdirSync(destination, { recursive: true });
+
+        const envTargetPath = path.join(destination, '.env');
+        fs.copyFileSync(envPath, envTargetPath);
+
+        const publishMeta = {
+          appName,
+          publishId,
+          description: String(fields.description || fields.notes || '').trim(),
+          createdAt: new Date().toISOString(),
+          liveUrl: `/live/${publishId}/`,
+        };
+
+        const metaTargetPath = path.join(destination, 'meta.json');
+        fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
+
+        const zipStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
+        zipStream.on('error', (error) => {
+          throw error;
+        });
+
+        try {
+          for await (const entry of zipStream) {
+            const target = normalizePublishedPath(destination, String(entry.path || ''));
+            if (!target) {
+              entry.autodrain();
+              throw new Error('Zip contains unsafe file paths.');
+            }
+
+            if (entry.type === 'Directory') {
+              fs.mkdirSync(target, { recursive: true });
+              entry.autodrain();
+              continue;
+            }
+
+            fs.mkdirSync(path.dirname(target), { recursive: true });
+            await new Promise((resolve, reject) => {
+              const writeStream = fs.createWriteStream(target);
+              entry.pipe(writeStream);
+              writeStream.on('finish', resolve);
+              writeStream.on('error', reject);
+              entry.on('error', reject);
+            });
+          }
+        } catch (unzipError) {
+          cleanup();
+          console.error('Publish unzip error:', unzipError);
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, error: unzipError.message }));
+          return;
+        }
+
+        // Attempt to build and run a Docker container for this app if Docker is available.
+        try {
+          child_process.execSync('docker version', { stdio: 'ignore' });
+          const imageTag = `flownet-${publishId}`;
+          const containerName = `flownet_${publishId}`;
+
+          // Create a default Dockerfile if none is provided.
+          const dockerfilePath = path.join(destination, 'Dockerfile');
+          if (!fs.existsSync(dockerfilePath)) {
+            if (fs.existsSync(path.join(destination, 'package.json'))) {
+              // Node app Dockerfile
+              fs.writeFileSync(
+                dockerfilePath,
+                `FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --production || true\nCOPY . .\nEXPOSE 3000\nCMD ["sh","-c","npm start || node server.js || npx serve -s build -l 3000"]\n`
+              );
+            } else {
+              // Static app Dockerfile (simple Python server)
+              fs.writeFileSync(
+                dockerfilePath,
+                `FROM python:3.11-slim\nWORKDIR /app\nCOPY . .\nEXPOSE 3000\nCMD ["python3", "-m", "http.server", "3000"]\n`
+              );
+            }
+          }
+
+          // Build image (may take some time)
+          child_process.execSync(`docker build -t ${imageTag} .`, { cwd: destination, stdio: 'ignore', timeout: 120000 });
+
+          // Run container with random published host port mapping
+          child_process.execSync(
+            `docker run -d -P --name ${containerName} --env-file ${envTargetPath} --memory=256m --cpus=0.5 --restart=unless-stopped ${imageTag}`,
+            { stdio: 'ignore', timeout: 30000 }
+          );
+
+          // Query mapped host port for container's 3000/tcp
+          const portOutput = child_process.execSync(`docker port ${containerName} 3000`, { encoding: 'utf8' }).trim();
+          let hostPort = null;
+          if (portOutput) {
+            const m = portOutput.match(/:(\d+)$/);
+            if (m) hostPort = Number(m[1]);
+          }
+
+          if (hostPort) {
+            publishMeta.container = { name: containerName, hostPort };
+            fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
+          }
+        } catch (dockerError) {
+          console.error('Docker build/run skipped or failed:', dockerError && dockerError.message ? dockerError.message : dockerError);
+        }
+
+        const liveUrl = publishMeta.liveUrl;
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true, liveUrl, publishId, appName, description: publishMeta.description }));
+      } catch (publishError) {
+        cleanup();
+        console.error('Publish error:', publishError);
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: publishError.message }));
+      }
     });
 
     return;

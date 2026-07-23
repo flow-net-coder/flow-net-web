@@ -220,7 +220,7 @@ function proxyToWhatb(req, res) {
   req.pipe(proxyReq, { end: true });
 }
 
-function proxyToLocalHost(host, port, req, res) {
+function proxyToLocalHost(host, port, req, res, fallback) {
   const originalUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const proxyPath = originalUrl.pathname.replace(/^\/live\/[A-Za-z0-9_-]+/, '') || '/';
   const target = `http://${host}:${port}${proxyPath}${originalUrl.search}`;
@@ -229,14 +229,33 @@ function proxyToLocalHost(host, port, req, res) {
   const proxyReq = requestFn(target, {
     method: req.method,
     headers: { ...req.headers, host: `${host}:${port}` },
+    timeout: 10000,
   }, (proxyRes) => {
     res.writeHead(proxyRes.statusCode || 500, { ...proxyRes.headers });
     proxyRes.pipe(res, { end: true });
   });
 
+  let timedOut = false;
+  proxyReq.on('timeout', () => {
+    timedOut = true;
+    try { proxyReq.abort(); } catch (e) {}
+  });
+
   proxyReq.on('error', (error) => {
+    console.error('Proxy to container error:', error && error.message ? error.message : error);
+    if (fallback && typeof fallback === 'function') {
+      fallback();
+      return;
+    }
     res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end(`Proxy error: ${error.message}`);
+  });
+
+  // If the request timed out, attempt fallback
+  req.on('aborted', () => {
+    if (timedOut && fallback && typeof fallback === 'function') {
+      fallback();
+    }
   });
 
   req.pipe(proxyReq, { end: true });
@@ -324,7 +343,17 @@ const server = http.createServer((req, res) => {
         if (meta && meta.container && meta.container.hostPort) {
           // record access time for idle cleanup
           markPublishedLastAccess(appId);
-          proxyToLocalHost('127.0.0.1', meta.container.hostPort, req, res);
+          // fallback serves static file when proxy fails
+          proxyToLocalHost('127.0.0.1', meta.container.hostPort, req, res, () => {
+            try {
+              if (fs.existsSync(normalizedPath) && !fs.statSync(normalizedPath).isDirectory()) {
+                sendFile(res, normalizedPath);
+                return;
+              }
+            } catch (e) {}
+            res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('Published app is unavailable.');
+          });
           return;
         }
       }

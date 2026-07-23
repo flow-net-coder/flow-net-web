@@ -46,6 +46,7 @@
         <a href="portfolio.html">Work</a>
         <a href="pricing.html">Pricing</a>
         <a href="contact.html" class="active" aria-current="page">Contact</a>
+        <a href="links.html">Links</a>
         <a href="contact.html" class="nav-cta">Start a Project</a>
       </nav>
     </div>
@@ -81,6 +82,64 @@
             <li>Live project links if you want to see current deployed work.</li>
           </ul>
         </aside>
+      </div>
+    </section>
+
+    <section class="section-block" id="start-project-form">
+      <div class="container">
+        <div class="section-heading" data-reveal>
+          <p class="eyebrow">Start a project</p>
+          <h2>Share your idea and contact details here.</h2>
+          <p>
+            Fill in the project brief, what you need built, and the best way to
+            reach you. This form is the fastest way to start the conversation.
+          </p>
+        </div>
+
+        <article class="surface-card project-form" data-reveal>
+          <form action="/submit-project" method="post" novalidate>
+            <div class="form-grid">
+              <label class="form-field">
+                <span>Full name</span>
+                <input type="text" name="name" placeholder="Your name" required />
+              </label>
+              <label class="form-field">
+                <span>Email address</span>
+                <input type="email" name="email" placeholder="you@example.com" required />
+              </label>
+              <label class="form-field">
+                <span>Phone</span>
+                <input type="tel" name="phone" placeholder="+27 65 000 0000" />
+              </label>
+              <label class="form-field">
+                <span>Company / business</span>
+                <input type="text" name="company" placeholder="Optional" />
+              </label>
+            </div>
+
+            <label class="form-field">
+              <span>Project idea</span>
+              <textarea name="project_idea" rows="4" placeholder="What do you want built?" required></textarea>
+            </label>
+
+            <label class="form-field">
+              <span>What problem should it solve?</span>
+              <textarea name="project_goal" rows="4" placeholder="Describe the main problem, process, or outcome you need." required></textarea>
+            </label>
+
+            <label class="form-field">
+              <span>Timeline or deadline</span>
+              <input type="text" name="timeline" placeholder="e.g. next 2 months, flexible" />
+            </label>
+
+            <label class="form-field">
+              <span>Additional details</span>
+              <textarea name="additional_details" rows="4" placeholder="Any tools, integrations, or must-have features?"></textarea>
+            </label>
+
+            <button class="button button-primary form-submit" type="submit">Send project brief</button>
+          </form>
+        </article>
       </div>
     </section>
 

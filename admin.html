@@ -15,8 +15,21 @@
   <h1>Published Apps</h1>
   <div id="apps">Loading…</div>
   <script>
+    let ADMIN_PIN = null;
+    async function login(pin) {
+      const r = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin }) });
+      return r.json();
+    }
+
     async function load() {
-      const r = await fetch('/api/admin/apps');
+      if (!ADMIN_PIN) {
+        const p = prompt('Enter admin PIN:');
+        if (!p) { document.getElementById('apps').textContent = 'Admin PIN required.'; return; }
+        const res = await login(p);
+        if (!res.ok) { alert('Invalid PIN'); return load(); }
+        ADMIN_PIN = p;
+      }
+      const r = await fetch('/api/admin/apps', { headers: { 'x-admin-pin': ADMIN_PIN } });
       const j = await r.json();
       const target = document.getElementById('apps');
       if(!j.ok) { target.textContent = 'Error: '+(j.error||'unknown'); return; }
@@ -35,11 +48,11 @@
     }
     async function stop(publishId){
       if(!confirm('Stop container for '+publishId+'?')) return;
-      const r = await fetch('/api/admin/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({publishId})});
+      const r = await fetch('/api/admin/stop',{method:'POST',headers:{'Content-Type':'application/json','x-admin-pin':ADMIN_PIN},body:JSON.stringify({publishId})});
       const j = await r.json(); if(!j.ok) alert('Error:'+j.error); else { alert('Stopped'); load(); }
     }
     async function logs(publishId){
-      const r = await fetch('/api/admin/logs?publishId='+encodeURIComponent(publishId));
+      const r = await fetch('/api/admin/logs?publishId='+encodeURIComponent(publishId), { headers: { 'x-admin-pin': ADMIN_PIN } });
       const j = await r.json();
       if(!j.ok) { alert('Error:'+j.error); return; }
       const w = window.open('','logs','width=800,height=600');

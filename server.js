@@ -71,6 +71,27 @@ const mimeTypes = {
 
 loadDotEnv(path.join(rootDir, '.env'));
 
+const ADMIN_PIN = process.env.ADMIN_BOOTSTRAP_PIN || '2026';
+
+function isAdmin(req) {
+  try {
+    const u = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+    const pinQuery = u.searchParams.get('pin');
+    if (pinQuery && pinQuery === String(ADMIN_PIN)) return true;
+    const headerPin = String(req.headers['x-admin-pin'] || '');
+    if (headerPin && headerPin === String(ADMIN_PIN)) return true;
+    const cookieHeader = req.headers.cookie || '';
+    const cookies = cookieHeader.split(';').map(c => c.trim()).filter(Boolean);
+    for (const c of cookies) {
+      const parts = c.split('=');
+      if (parts[0] === 'admin_pin' && parts[1] === String(ADMIN_PIN)) return true;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return false;
+}
+
 function loadDotEnv(filePath) {
   if (!fs.existsSync(filePath)) {
     return;
@@ -541,7 +562,40 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Admin login to set cookie
+  if (requestPath === '/api/admin/login' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk.toString(); });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const pin = String(data.pin || '');
+        if (pin !== String(ADMIN_PIN)) {
+          res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, error: 'invalid pin' }));
+          return;
+        }
+
+        // set a cookie valid for 1 day
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Set-Cookie': `admin_pin=${pin}; Path=/; Max-Age=${24*60*60}; HttpOnly=false`,
+        });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+      }
+    });
+    return;
+  }
+
   if (requestPath === '/api/admin/apps' && req.method === 'GET') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+      return;
+    }
     ensurePublishedRoot();
     const apps = [];
     for (const item of fs.readdirSync(publishedRoot, { withFileTypes: true })) {
@@ -585,6 +639,11 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === '/api/admin/stop' && req.method === 'POST') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+      return;
+    }
     let body = '';
     req.on('data', (chunk) => { body += chunk.toString(); });
     req.on('end', () => {
@@ -612,6 +671,11 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === '/api/admin/logs' && req.method === 'GET') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+      return;
+    }
     const publishId = url.searchParams.get('publishId');
     if (!publishId) {
       res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });

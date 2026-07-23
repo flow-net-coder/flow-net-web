@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FLOW-NET Admin — Published Apps</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;padding:20px}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #ddd;padding:8px}
+    th{background:#f4f4f4}
+    pre{background:#111;color:#0f0;padding:10px;overflow:auto}
+  </style>
+</head>
+<body>
+  <h1>Published Apps</h1>
+  <div id="apps">Loading…</div>
+  <script>
+    async function load() {
+      const r = await fetch('/api/admin/apps');
+      const j = await r.json();
+      const target = document.getElementById('apps');
+      if(!j.ok) { target.textContent = 'Error: '+(j.error||'unknown'); return; }
+      if(!j.apps.length) { target.textContent = 'No published apps.'; return; }
+      const rows = j.apps.map(a=>`<tr>
+        <td>${a.appName}<br/><small>${a.publishId}</small></td>
+        <td>${a.description}</td>
+        <td>${a.container ? 'Yes' : 'No'}</td>
+        <td>${a.lastAccess||a.createdAt}</td>
+        <td>
+          <button onclick="stop('${a.publishId}')">Stop</button>
+          <button onclick="logs('${a.publishId}')">Logs</button>
+        </td>
+      </tr>`).join('');
+      target.innerHTML = `<table><thead><tr><th>App</th><th>Description</th><th>Container</th><th>Last Access</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    async function stop(publishId){
+      if(!confirm('Stop container for '+publishId+'?')) return;
+      const r = await fetch('/api/admin/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({publishId})});
+      const j = await r.json(); if(!j.ok) alert('Error:'+j.error); else { alert('Stopped'); load(); }
+    }
+    async function logs(publishId){
+      const r = await fetch('/api/admin/logs?publishId='+encodeURIComponent(publishId));
+      const j = await r.json();
+      if(!j.ok) { alert('Error:'+j.error); return; }
+      const w = window.open('','logs','width=800,height=600');
+      w.document.body.innerHTML = '<h2>Logs for '+publishId+'</h2><pre>'+escapeHtml(j.logs)+'</pre>';
+    }
+    function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    load();
+  </script>
+</body>
+</html>

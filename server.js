@@ -221,6 +221,19 @@ function proxyToLocalHost(host, port, req, res) {
   req.pipe(proxyReq, { end: true });
 }
 
+// Update lastAccess for a publishId when proxying to its container
+function markPublishedLastAccess(publishId) {
+  try {
+    const metaPath = path.join(publishedRoot, publishId, 'meta.json');
+    if (!fs.existsSync(metaPath)) return;
+    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+    meta.lastAccess = new Date().toISOString();
+    fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+  } catch (e) {
+    console.error('Failed to update lastAccess for', publishId, e);
+  }
+}
+
 function resolveStaticFile(requestPath) {
   let targetPath = requestPath === '/' ? '/index.html' : requestPath;
 
@@ -288,6 +301,8 @@ const server = http.createServer((req, res) => {
       if (fs.existsSync(metaPath)) {
         const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
         if (meta && meta.container && meta.container.hostPort) {
+          // record access time for idle cleanup
+          markPublishedLastAccess(appId);
           proxyToLocalHost('127.0.0.1', meta.container.hostPort, req, res);
           return;
         }
@@ -514,6 +529,118 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Admin APIs for managing published app containers
+  if (requestPath === '/admin' && req.method === 'GET') {
+    const adminPath = path.join(rootDir, 'admin.html');
+    if (fs.existsSync(adminPath)) {
+      sendFile(res, adminPath);
+      return;
+    }
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Admin UI not found.');
+    return;
+  }
+
+  if (requestPath === '/api/admin/apps' && req.method === 'GET') {
+    ensurePublishedRoot();
+    const apps = [];
+    for (const item of fs.readdirSync(publishedRoot, { withFileTypes: true })) {
+      if (!item.isDirectory()) continue;
+      const appFolder = path.join(publishedRoot, item.name);
+      const metaPath = path.join(appFolder, 'meta.json');
+      let meta = null;
+      if (fs.existsSync(metaPath)) {
+        try {
+          meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        } catch {
+          meta = null;
+        }
+      }
+
+      let containerStatus = null;
+      try {
+        if (meta && meta.container && meta.container.name) {
+          const inspect = child_process.execSync(`docker inspect -f '{{json .State}}' ${meta.container.name}`, { encoding: 'utf8' });
+          containerStatus = JSON.parse(inspect);
+        }
+      } catch (e) {
+        containerStatus = { error: String(e.message || e) };
+      }
+
+      apps.push({
+        publishId: item.name,
+        appName: meta?.appName || item.name,
+        description: meta?.description || '',
+        createdAt: meta?.createdAt || fs.statSync(appFolder).ctime.toISOString(),
+        liveUrl: meta?.liveUrl || `/live/${item.name}/`,
+        container: meta?.container || null,
+        lastAccess: meta?.lastAccess || null,
+        containerStatus,
+      });
+    }
+    apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, apps }));
+    return;
+  }
+
+  if (requestPath === '/api/admin/stop' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk.toString(); });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const publishId = String(data.publishId || '').trim();
+        if (!publishId) throw new Error('publishId required');
+        const metaPath = path.join(publishedRoot, publishId, 'meta.json');
+        if (!fs.existsSync(metaPath)) throw new Error('publishId not found');
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        if (meta.container && meta.container.name) {
+          child_process.execSync(`docker stop ${meta.container.name}`, { stdio: 'ignore' });
+          child_process.execSync(`docker rm ${meta.container.name}`, { stdio: 'ignore' });
+          delete meta.container;
+          fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+      }
+    });
+    return;
+  }
+
+  if (requestPath === '/api/admin/logs' && req.method === 'GET') {
+    const publishId = url.searchParams.get('publishId');
+    if (!publishId) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'publishId query required' }));
+      return;
+    }
+    const metaPath = path.join(publishedRoot, publishId, 'meta.json');
+    if (!fs.existsSync(metaPath)) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'publishId not found' }));
+      return;
+    }
+    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+    if (!meta.container || !meta.container.name) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'No container for this app' }));
+      return;
+    }
+    try {
+      const logs = child_process.execSync(`docker logs --tail 200 ${meta.container.name}`, { encoding: 'utf8' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, logs }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+    }
+    return;
+  }
+
   if (requestPath === '/api/flow-net/actions' && req.method === 'GET') {
     const botAppId = url.searchParams.get('botAppId') || 'flow-net-main';
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -585,6 +712,39 @@ const server = http.createServer((req, res) => {
 
   sendFile(res, staticFile);
 });
+
+// Periodic cleanup: stop containers idle for more than 30 minutes
+setInterval(() => {
+  try {
+    ensurePublishedRoot();
+    const now = Date.now();
+    const idleMs = 30 * 60 * 1000; // 30 minutes
+    for (const item of fs.readdirSync(publishedRoot, { withFileTypes: true })) {
+      if (!item.isDirectory()) continue;
+      const publishId = item.name;
+      const metaPath = path.join(publishedRoot, publishId, 'meta.json');
+      if (!fs.existsSync(metaPath)) continue;
+      try {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        const last = meta.lastAccess ? new Date(meta.lastAccess).getTime() : new Date(meta.createdAt || fs.statSync(path.join(publishedRoot, publishId)).ctime).getTime();
+        if (meta.container && meta.container.name && now - last > idleMs) {
+          try {
+            child_process.execSync(`docker stop ${meta.container.name}`, { stdio: 'ignore' });
+            child_process.execSync(`docker rm ${meta.container.name}`, { stdio: 'ignore' });
+          } catch (e) {
+            console.error('Failed to stop/remove idle container', meta.container.name, e);
+          }
+          delete meta.container;
+          fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+        }
+      } catch (e) {
+        console.error('Error checking published meta for cleanup', publishId, e);
+      }
+    }
+  } catch (e) {
+    console.error('Cleanup job failed', e);
+  }
+}, 5 * 60 * 1000);
 
 server.listen(port, () => {
   console.log(`FLOW-NET site running on http://127.0.0.1:${port}`);

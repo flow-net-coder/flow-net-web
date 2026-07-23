@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <meta name='description' content='Upload your project archive and .env file to publish a live app on FLOW-NET.' />
+  <title>FLOW-NET V2 | Publish a Project</title>
+  <link rel='preconnect' href='https://fonts.googleapis.com' />
+  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+  <link href='https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap' rel='stylesheet' />
+  <link rel='stylesheet' href='style.css' />
+  <script defer src='config.js'></script>
+  <script defer src='script.js'></script>
+</head>
+<body data-page='publish'>
+  <header class='site-header'>
+    <div class='container header-bar'>
+      <a class='brand' href='index.html' aria-label='FLOW-NET home'>
+        <span class='brand-mark'>FN</span>
+        <span class='brand-text'>
+          <strong>FLOW-NET</strong>
+          <small>Where logic flows</small>
+        </span>
+      </a>
+
+      <button class='nav-toggle' type='button' aria-expanded='false' aria-controls='site-nav' aria-label='Toggle navigation'>
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class='site-nav' id='site-nav'>
+        <a href='index.html'>Home</a>
+        <a href='portfolio.html'>Work</a>
+        <a href='live.html'>Live apps</a>
+        <a href='pricing.html'>Pricing</a>
+        <a href='contact.html'>Contact</a>
+        <a href='links.html'>Links</a>
+        <a href='publish.html' class='nav-cta'>Publish an App</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class='hero hero-subpage'>
+      <div class='container hero-subpage-grid'>
+        <div data-reveal>
+          <p class='eyebrow'>Publish a project</p>
+          <h1>Upload your code bundle and environment variables.</h1>
+          <p class='lead'>
+            Use FLOW-NET to deploy a live app from your code archive and a .env file.
+            The published app will be served from the FLOW-NET live apps platform.
+          </p>
+          <p>
+            Compress your static app or frontend build into a zip file, upload a
+            valid .env file, and FLOW-NET will publish it under a live path.
+          </p>
+          <div class='hero-actions'>
+            <a class='button button-primary' href='live.html'>View live apps</a>
+            <a class='button button-secondary' href='contact.html'>Need help?</a>
+          </div>
+        </div>
+
+        <aside class='dashboard-panel' data-reveal>
+          <p class='panel-label'>What to include</p>
+          <h2>Publish successfully with these files.</h2>
+          <ul class='signal-list'>
+            <li>A zip archive containing your static app files.</li>
+            <li>A .env file with the environment variables the app requires.</li>
+            <li>An app name so FLOW-NET can create a unique live path.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class='section-block'>
+      <div class='container'>
+        <div class='section-heading' data-reveal>
+          <p class='eyebrow'>Upload details</p>
+          <h2>Publish a live app from your code base.</h2>
+          <p>
+            The upload below publishes your app to FLOW-NET resources. It is an
+            optional feature that complements the normal build and project
+            support services.
+          </p>
+        </div>
+
+        <article class='surface-card project-form' data-reveal>
+          <form action='/api/publish' method='post' enctype='multipart/form-data'>
+            <div class='form-grid'>
+              <label class='form-field'>
+                <span>App name</span>
+                <input type='text' name='app_name' placeholder='App name' required />
+              </label>
+              <label class='form-field'>
+                <span>Code bundle (.zip)</span>
+                <input type='file' name='code_bundle' accept='.zip' required />
+              </label>
+              <label class='form-field'>
+                <span>.env file</span>
+                <input type='file' name='env_file' accept='.env' required />
+              </label>
+            </div>
+
+            <label class='form-field'>
+              <span>Description</span>
+              <textarea name='description' rows='4' placeholder='Optional notes about this app'></textarea>
+            </label>
+
+            <button class='button button-primary form-submit' type='submit'>Publish to FLOW-NET</button>
+          </form>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+EOF

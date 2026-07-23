@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node server.js"
   },
+  "dependencies": {
+    "formidable": "^3.0.0",
+    "unzipper": "^0.10.11"
+  },
   "engines": {
     "node": ">=18"
   }

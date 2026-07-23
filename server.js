@@ -1,6 +1,8 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const formidable = require('formidable');
+const unzipper = require('unzipper');
 
 const rootDir = __dirname;
 const port = Number.parseInt(process.env.PORT || '3000', 10);
@@ -129,6 +131,29 @@ function sendFile(res, filePath) {
 
 const WHATB_PROXY_TARGET = process.env.WHATB_PROXY_TARGET || '';
 const WHATB_PROXY_PATH = process.env.WHATB_PROXY_PATH || '/whatb';
+const publishedRoot = path.join(rootDir, 'published');
+
+function ensurePublishedRoot() {
+  if (!fs.existsSync(publishedRoot)) {
+    fs.mkdirSync(publishedRoot, { recursive: true });
+  }
+}
+
+function safeName(value) {
+  return String(value || 'app')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'app';
+}
+
+function normalizePublishedPath(base, entryPath) {
+  const normalized = path.normalize(entryPath.replace(/^\/+/, ''));
+  if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
+    return null;
+  }
+  return path.join(base, normalized);
+}
 
 function proxyToWhatb(req, res) {
   if (!WHATB_PROXY_TARGET) {
@@ -207,6 +232,158 @@ const server = http.createServer((req, res) => {
 
   if (requestPath.startsWith(WHATB_PROXY_PATH)) {
     proxyToWhatb(req, res);
+    return;
+  }
+
+  if (requestPath.startsWith('/live/')) {
+    const livePath = requestPath.slice('/live/'.length);
+    const segments = livePath.split('/').filter(Boolean);
+    const appId = segments.shift();
+    if (!appId) {
+      res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Missing app ID.');
+      return;
+    }
+
+    const publishFolder = path.join(publishedRoot, appId);
+    const filePath = segments.length > 0 ? path.join(publishFolder, segments.join('/')) : path.join(publishFolder, 'index.html');
+    const normalizedPath = path.normalize(filePath);
+
+    if (!normalizedPath.startsWith(publishFolder) || !fs.existsSync(normalizedPath)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Published app not found.');
+      return;
+    }
+
+    const stat = fs.statSync(normalizedPath);
+    if (stat.isDirectory()) {
+      const indexFile = path.join(normalizedPath, 'index.html');
+      if (fs.existsSync(indexFile)) {
+        sendFile(res, indexFile);
+        return;
+      }
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Directory index not found.');
+      return;
+    }
+
+    sendFile(res, normalizedPath);
+    return;
+  }
+
+  if (requestPath === '/api/publish' && req.method === 'POST') {
+    const form = new formidable.IncomingForm({ multiples: false, keepExtensions: true });
+    ensurePublishedRoot();
+
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: err.message }));
+        return;
+      }
+
+      const appName = safeName(fields.app_name || fields.appName || 'app');
+      const publishId = `${appName}-${Date.now()}`;
+      const destination = path.join(publishedRoot, publishId);
+      const codeFile = files.code_bundle || files.codeBundle;
+      const envFile = files.env_file || files.envFile;
+
+      if (!codeFile || codeFile.size === 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'A code bundle zip file is required.' }));
+        return;
+      }
+
+      if (!envFile || envFile.size === 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: '.env upload is required.' }));
+        return;
+      }
+
+      fs.mkdirSync(destination, { recursive: true });
+
+      const envTargetPath = path.join(destination, '.env');
+      fs.copyFileSync(envFile.filepath || envFile.path, envTargetPath);
+
+      const publishMeta = {
+        appName,
+        publishId,
+        description: String(fields.description || fields.notes || '').trim(),
+        createdAt: new Date().toISOString(),
+        liveUrl: `/live/${publishId}/`,
+      };
+
+      const metaTargetPath = path.join(destination, 'meta.json');
+      fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
+
+      const zipStream = fs.createReadStream(codeFile.filepath || codeFile.path).pipe(unzipper.Parse());
+      let unzipError = null;
+      for await (const entry of zipStream) {
+        const target = normalizePublishedPath(destination, entry.path);
+        if (!target) {
+          unzipError = new Error('Zip contains unsafe file paths.');
+          entry.autodrain();
+          continue;
+        }
+
+        if (entry.type === 'Directory') {
+          fs.mkdirSync(target, { recursive: true });
+          entry.autodrain();
+          continue;
+        }
+
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        await new Promise((resolve, reject) => {
+          const writeStream = fs.createWriteStream(target);
+          entry.pipe(writeStream);
+          writeStream.on('finish', resolve);
+          writeStream.on('error', reject);
+        });
+      }
+
+      if (unzipError) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: unzipError.message }));
+        return;
+      }
+
+      const liveUrl = publishMeta.liveUrl;
+      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, liveUrl, publishId, appName, description: publishMeta.description }));
+    });
+
+    return;
+  }
+
+  if (requestPath === '/api/live-apps' && req.method === 'GET') {
+    ensurePublishedRoot();
+    const apps = [];
+    for (const item of fs.readdirSync(publishedRoot, { withFileTypes: true })) {
+      if (!item.isDirectory()) {
+        continue;
+      }
+      const appFolder = path.join(publishedRoot, item.name);
+      const metaPath = path.join(appFolder, 'meta.json');
+      let meta = null;
+      if (fs.existsSync(metaPath)) {
+        try {
+          meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        } catch {
+          meta = null;
+        }
+      }
+      apps.push({
+        publishId: item.name,
+        appName: meta?.appName || item.name,
+        description: meta?.description || '',
+        createdAt: meta?.createdAt || fs.statSync(appFolder).ctime.toISOString(),
+        liveUrl: meta?.liveUrl || `/live/${item.name}/`,
+      });
+    }
+
+    apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, apps }));
     return;
   }
 

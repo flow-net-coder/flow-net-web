@@ -1,6 +1,6 @@
 const publicConfigDefaults = {
   SITE_NAME: 'FLOW-NET',
-  SITE_URL: 'https://flow-net.up.railway.app',
+  SITE_URL: 'https://flow-net-pro.up.railway.app',
   CONTACT_EMAIL: 'hello@flow-net.dev',
   CONTACT_PHONE: '+27650000000',
   CONTACT_PHONE_LABEL: '+27 65 000 0000',

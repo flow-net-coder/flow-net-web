@@ -7,7 +7,7 @@ const port = Number.parseInt(process.env.PORT || '3000', 10);
 
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: 'FLOW-NET',
-  SITE_URL: 'https://flow-net.up.railway.app',
+  SITE_URL: 'https://flow-net-pro.up.railway.app',
   CONTACT_EMAIL: 'hello@flow-net.dev',
   CONTACT_PHONE: '+27650000000',
   CONTACT_PHONE_LABEL: '+27 65 000 0000',
@@ -152,6 +152,64 @@ function resolveStaticFile(requestPath) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const requestPath = decodeURIComponent(url.pathname);
+
+  if (requestPath === '/api/health' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, service: 'FLOW-NET', status: 'ready' }));
+    return;
+  }
+
+  if (requestPath === '/api/flow-net/actions' && req.method === 'GET') {
+    const botAppId = url.searchParams.get('botAppId') || 'flow-net-main';
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({
+      actions: [
+        {
+          actionId: 'flow-net.echo',
+          label: 'Echo message',
+          appAction: 'echo',
+          description: 'Return the incoming message payload in a structured response.',
+          enabled: true,
+          requiresApproval: false,
+        },
+        {
+          actionId: 'flow-net.notify',
+          label: 'Send notification',
+          appAction: 'notify',
+          description: 'Send a simple notification payload to the FLOW-NET app.',
+          enabled: true,
+          requiresApproval: true,
+        },
+      ],
+      botAppId,
+    }));
+    return;
+  }
+
+  if (requestPath === '/api/flow-net/webhook' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      let payload = {};
+      try {
+        payload = body ? JSON.parse(body) : {};
+      } catch {
+        payload = { raw: body };
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        ok: true,
+        received: true,
+        action: payload.action || 'unknown',
+        appId: payload.appId || 'flow-net-main',
+        message: 'FLOW-NET webhook received.',
+      }));
+    });
+    return;
+  }
 
   if (requestPath === '/config.js') {
     const payload = `window.FLOW_NET_PUBLIC_CONFIG = ${JSON.stringify(getPublicConfig(), null, 2)};`;

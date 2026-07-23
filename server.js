@@ -388,9 +388,38 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      const envPath = envFile.filepath || envFile.path;
-      const zipPath = codeFile.filepath || codeFile.path;
+      // Resolve uploaded file paths robustly across formidable versions.
+      function resolveUploadedPath(file) {
+        if (!file) return null;
+        if (file.filepath && fs.existsSync(file.filepath)) return file.filepath;
+        if (file.path && fs.existsSync(file.path)) return file.path;
+        if (file.filePath && fs.existsSync(file.filePath)) return file.filePath;
+        // Some upload handlers may include a buffer property — write to temp file.
+        if (file.buffer && Buffer.isBuffer(file.buffer) && file.originalFilename) {
+          const tmp = path.join(require('os').tmpdir(), `upload-${Date.now()}-${safeName(file.originalFilename)}`);
+          try {
+            fs.writeFileSync(tmp, file.buffer);
+            return tmp;
+          } catch (e) {
+            console.error('Failed to write buffer upload to tmp file', e);
+            return null;
+          }
+        }
+        // Try enumerating plausible props
+        for (const p of Object.keys(file)) {
+          if (typeof file[p] === 'string' && (p.toLowerCase().includes('path') || p.toLowerCase().includes('file'))) {
+            try {
+              if (fs.existsSync(file[p])) return file[p];
+            } catch (e) {}
+          }
+        }
+        return null;
+      }
+
+      const envPath = resolveUploadedPath(envFile);
+      const zipPath = resolveUploadedPath(codeFile);
       if (!envPath || !zipPath) {
+        console.error('Publish missing uploaded file paths', { envFile: Object.keys(envFile || {}), codeFile: Object.keys(codeFile || {}) });
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: 'Uploaded files were not received correctly.' }));
         return;

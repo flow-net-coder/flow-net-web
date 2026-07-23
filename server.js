@@ -127,6 +127,52 @@ function sendFile(res, filePath) {
   });
 }
 
+const WHATB_PROXY_TARGET = process.env.WHATB_PROXY_TARGET || '';
+const WHATB_PROXY_PATH = process.env.WHATB_PROXY_PATH || '/whatb';
+
+function proxyToWhatb(req, res) {
+  if (!WHATB_PROXY_TARGET) {
+    res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('WHATB proxy target is not configured.');
+    return;
+  }
+
+  const originalUrl = new URL(req.url || '/', 'http://localhost');
+  const targetBase = new URL(WHATB_PROXY_TARGET);
+  const proxyPath = originalUrl.pathname.startsWith(WHATB_PROXY_PATH)
+    ? originalUrl.pathname.slice(WHATB_PROXY_PATH.length) || '/'
+    : originalUrl.pathname;
+
+  targetBase.pathname = path.posix.join(targetBase.pathname, proxyPath);
+  targetBase.search = originalUrl.search;
+
+  const proxyHeaders = { ...req.headers, host: targetBase.host };
+  const requestFn = targetBase.protocol === 'https:' ? require('https').request : require('http').request;
+
+  const proxyReq = requestFn(targetBase, {
+    method: req.method,
+    headers: proxyHeaders,
+  }, (proxyRes) => {
+    const responseHeaders = { ...proxyRes.headers };
+    if (responseHeaders.location) {
+      responseHeaders.location = String(responseHeaders.location).replace(
+        targetBase.origin,
+        WHATB_PROXY_PATH,
+      );
+    }
+
+    res.writeHead(proxyRes.statusCode || 500, responseHeaders);
+    proxyRes.pipe(res, { end: true });
+  });
+
+  proxyReq.on('error', (error) => {
+    res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end(`WHATB proxy error: ${error.message}`);
+  });
+
+  req.pipe(proxyReq, { end: true });
+}
+
 function resolveStaticFile(requestPath) {
   let targetPath = requestPath === '/' ? '/index.html' : requestPath;
 
@@ -156,6 +202,11 @@ const server = http.createServer((req, res) => {
   if (requestPath === '/api/health' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ ok: true, service: 'FLOW-NET', status: 'ready' }));
+    return;
+  }
+
+  if (requestPath.startsWith(WHATB_PROXY_PATH)) {
+    proxyToWhatb(req, res);
     return;
   }
 

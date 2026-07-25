@@ -525,6 +525,30 @@ main {
   min-height: 100%;
 }
 
+.project-card img.project-thumb {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+}
+
+.review-form {
+  margin-top: 1.4rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.review-form .form-field {
+  margin-bottom: 0;
+}
+
+.review-form textarea,
+.review-form input,
+.review-form select {
+  border-radius: 16px;
+}
+
 .project-topline {
   display: flex;
   align-items: center;

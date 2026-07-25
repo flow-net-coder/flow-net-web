@@ -1,8 +1,6 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const formidable = require('formidable');
-const unzipper = require('unzipper');
 const child_process = require('child_process');
 
 const rootDir = __dirname;
@@ -169,6 +167,33 @@ function safeName(value) {
     .replace(/^-|-$/g, '') || 'app';
 }
 
+function isValidHttpUrl(value) {
+  try {
+    const url = new URL(String(value).trim());
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function parseRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk.toString(); });
+    req.on('end', () => resolve(body));
+    req.on('error', reject);
+  });
+}
+
+function computeReviewStats(reviews) {
+  if (!Array.isArray(reviews) || reviews.length === 0) {
+    return { averageRating: 0, reviewCount: 0 };
+  }
+  const sum = reviews.reduce((acc, review) => acc + (Number(review.rating) || 0), 0);
+  const count = reviews.length;
+  return { averageRating: Number((sum / count).toFixed(2)), reviewCount: count };
+}
+
 function normalizePublishedPath(base, entryPath) {
   const normalized = path.normalize(entryPath.replace(/^\/+/, ''));
   if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
@@ -300,7 +325,7 @@ function resolveStaticFile(requestPath) {
   return absolutePath;
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const requestPath = decodeURIComponent(url.pathname);
 
@@ -384,257 +409,61 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === '/api/publish' && req.method === 'POST') {
-    const form = new formidable.IncomingForm({ multiples: false, keepExtensions: true });
     ensurePublishedRoot();
 
-    form.on('error', (error) => {
-      console.error('Publish form error:', error);
-    });
+    try {
+      const rawBody = await parseRequestBody(req);
+      const fields = Object.fromEntries(new URLSearchParams(rawBody));
+      const appName = safeName(fields.app_name || fields.appName || 'app');
+      const appUrl = String(fields.app_url || fields.appUrl || '').trim();
+      const thumbnailUrl = String(fields.thumbnail_url || fields.thumbnailUrl || '').trim();
+      const description = String(fields.description || fields.notes || '').trim();
 
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error('Publish parse error:', err);
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: err.message }));
+      if (!appName) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'App name is required.' }));
         return;
       }
 
-      const appName = safeName(fields.app_name || fields.appName || 'app');
+      if (!isValidHttpUrl(appUrl)) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'A valid app URL is required.' }));
+        return;
+      }
+
+      if (thumbnailUrl && !isValidHttpUrl(thumbnailUrl)) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Thumbnail URL must be a valid http or https URL.' }));
+        return;
+      }
+
       const publishId = `${appName}-${Date.now()}`;
       const destination = path.join(publishedRoot, publishId);
-      const codeFile = files.code_bundle || files.codeBundle;
-      const envFile = files.env_file || files.envFile;
+      fs.mkdirSync(destination, { recursive: true });
 
-      if (!codeFile || codeFile.size === 0) {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: 'A code bundle zip file is required.' }));
-        return;
-      }
-
-      if (!envFile || envFile.size === 0) {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: '.env upload is required.' }));
-        return;
-      }
-
-      // Resolve uploaded file paths robustly across formidable versions.
-      function resolveUploadedPath(file, depth = 0) {
-        if (!file) return null;
-        // Avoid deep recursion
-        if (depth > 4) return null;
-
-        // If it's an array-like or object with numeric keys, try entries
-        if (Array.isArray(file)) {
-          for (const f of file) {
-            const p = resolveUploadedPath(f, depth + 1);
-            if (p) return p;
-          }
-        }
-        if (typeof file === 'object') {
-          // numeric keys case: { '0': { ... } }
-          const keys = Object.keys(file || {});
-          const numericKey = keys.find((k) => /^\d+$/.test(k));
-          if (numericKey) {
-            const nested = file[numericKey];
-            const p = resolveUploadedPath(nested, depth + 1);
-            if (p) return p;
-          }
-        }
-
-        if (typeof file === 'string') {
-          if (fs.existsSync(file)) return file;
-          return null;
-        }
-
-        if (file.filepath && fs.existsSync(file.filepath)) return file.filepath;
-        if (file.path && fs.existsSync(file.path)) return file.path;
-        if (file.filePath && fs.existsSync(file.filePath)) return file.filePath;
-
-        // Buffer upload fallback
-        if (file.buffer && Buffer.isBuffer(file.buffer) && file.originalFilename) {
-          const tmp = path.join(require('os').tmpdir(), `upload-${Date.now()}-${safeName(file.originalFilename)}`);
-          try {
-            fs.writeFileSync(tmp, file.buffer);
-            return tmp;
-          } catch (e) {
-            console.error('Failed to write buffer upload to tmp file', e);
-            return null;
-          }
-        }
-
-        // Try enumerating plausible props for strings pointing to paths
-        for (const p of Object.keys(file || {})) {
-          try {
-            if (typeof file[p] === 'string' && (p.toLowerCase().includes('path') || p.toLowerCase().includes('file'))) {
-              if (fs.existsSync(file[p])) return file[p];
-            }
-            // nested objects
-            if (typeof file[p] === 'object') {
-              const nested = resolveUploadedPath(file[p], depth + 1);
-              if (nested) return nested;
-            }
-          } catch (e) {}
-        }
-
-        return null;
-      }
-
-      const envPath = resolveUploadedPath(envFile);
-      const zipPath = resolveUploadedPath(codeFile);
-      if (!envPath || !zipPath) {
-        // Write a small diagnostic summary to tmp for debugging (no file contents)
-        try {
-          const diag = {
-            time: new Date().toISOString(),
-            envFileKeys: envFile ? Object.keys(envFile) : null,
-            codeFileKeys: codeFile ? Object.keys(codeFile) : null,
-            envFileSample: envFile && typeof envFile === 'object' ? summarizeFileObject(envFile) : null,
-            codeFileSample: codeFile && typeof codeFile === 'object' ? summarizeFileObject(codeFile) : null,
-          };
-          const diagPath = path.join(require('os').tmpdir(), `flownet-upload-diag-${Date.now()}.json`);
-          fs.writeFileSync(diagPath, JSON.stringify(diag, null, 2));
-          console.error('Publish missing uploaded file paths', diag);
-        } catch (e) {
-          console.error('Failed writing upload diagnostic', e);
-        }
-
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: 'Uploaded files were not received correctly.' }));
-        return;
-      }
-
-      function summarizeFileObject(obj) {
-        const out = {};
-        try {
-          for (const k of Object.keys(obj || {})) {
-            const v = obj[k];
-            out[k] = { type: typeof v };
-            if (v && typeof v === 'object') {
-              out[k].keys = Object.keys(v).slice(0, 10);
-            }
-          }
-        } catch (e) {}
-        return out;
-      }
-
-      const cleanup = () => {
-        if (fs.existsSync(destination)) {
-          fs.rmSync(destination, { recursive: true, force: true });
-        }
+      const publishMeta = {
+        appName,
+        publishId,
+        appUrl: new URL(appUrl).href,
+        thumbnailUrl: thumbnailUrl ? new URL(thumbnailUrl).href : '',
+        description,
+        createdAt: new Date().toISOString(),
+        liveUrl: new URL(appUrl).href,
+        reviews: [],
+        averageRating: 0,
+        reviewCount: 0,
       };
 
-      try {
-        fs.mkdirSync(destination, { recursive: true });
+      const metaTargetPath = path.join(destination, 'meta.json');
+      fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
 
-        const envTargetPath = path.join(destination, '.env');
-        fs.copyFileSync(envPath, envTargetPath);
-
-        const publishMeta = {
-          appName,
-          publishId,
-          description: String(fields.description || fields.notes || '').trim(),
-          createdAt: new Date().toISOString(),
-          liveUrl: `/live/${publishId}/`,
-        };
-
-        const metaTargetPath = path.join(destination, 'meta.json');
-        fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
-
-        const zipStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
-        zipStream.on('error', (error) => {
-          throw error;
-        });
-
-        try {
-          for await (const entry of zipStream) {
-            const target = normalizePublishedPath(destination, String(entry.path || ''));
-            if (!target) {
-              entry.autodrain();
-              throw new Error('Zip contains unsafe file paths.');
-            }
-
-            if (entry.type === 'Directory') {
-              fs.mkdirSync(target, { recursive: true });
-              entry.autodrain();
-              continue;
-            }
-
-            fs.mkdirSync(path.dirname(target), { recursive: true });
-            await new Promise((resolve, reject) => {
-              const writeStream = fs.createWriteStream(target);
-              entry.pipe(writeStream);
-              writeStream.on('finish', resolve);
-              writeStream.on('error', reject);
-              entry.on('error', reject);
-            });
-          }
-        } catch (unzipError) {
-          cleanup();
-          console.error('Publish unzip error:', unzipError);
-          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ ok: false, error: unzipError.message }));
-          return;
-        }
-
-        // Attempt to build and run a Docker container for this app if Docker is available.
-        try {
-          child_process.execSync('docker version', { stdio: 'ignore' });
-          const imageTag = `flownet-${publishId}`;
-          const containerName = `flownet_${publishId}`;
-
-          // Create a default Dockerfile if none is provided.
-          const dockerfilePath = path.join(destination, 'Dockerfile');
-          if (!fs.existsSync(dockerfilePath)) {
-            if (fs.existsSync(path.join(destination, 'package.json'))) {
-              // Node app Dockerfile
-              fs.writeFileSync(
-                dockerfilePath,
-                `FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --production || true\nCOPY . .\nEXPOSE 3000\nCMD ["sh","-c","npm start || node server.js || npx serve -s build -l 3000"]\n`
-              );
-            } else {
-              // Static app Dockerfile (simple Python server)
-              fs.writeFileSync(
-                dockerfilePath,
-                `FROM python:3.11-slim\nWORKDIR /app\nCOPY . .\nEXPOSE 3000\nCMD ["python3", "-m", "http.server", "3000"]\n`
-              );
-            }
-          }
-
-          // Build image (may take some time)
-          child_process.execSync(`docker build -t ${imageTag} .`, { cwd: destination, stdio: 'ignore', timeout: 120000 });
-
-          // Run container with random published host port mapping
-          child_process.execSync(
-            `docker run -d -P --name ${containerName} --env-file ${envTargetPath} --memory=256m --cpus=0.5 --restart=unless-stopped ${imageTag}`,
-            { stdio: 'ignore', timeout: 30000 }
-          );
-
-          // Query mapped host port for container's 3000/tcp
-          const portOutput = child_process.execSync(`docker port ${containerName} 3000`, { encoding: 'utf8' }).trim();
-          let hostPort = null;
-          if (portOutput) {
-            const m = portOutput.match(/:(\d+)$/);
-            if (m) hostPort = Number(m[1]);
-          }
-
-          if (hostPort) {
-            publishMeta.container = { name: containerName, hostPort };
-            fs.writeFileSync(metaTargetPath, JSON.stringify(publishMeta, null, 2));
-          }
-        } catch (dockerError) {
-          console.error('Docker build/run skipped or failed:', dockerError && dockerError.message ? dockerError.message : dockerError);
-        }
-
-        const liveUrl = publishMeta.liveUrl;
-        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true, liveUrl, publishId, appName, description: publishMeta.description }));
-      } catch (publishError) {
-        cleanup();
-        console.error('Publish error:', publishError);
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: publishError.message }));
-      }
-    });
+      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, liveUrl: publishMeta.liveUrl, publishId, appName, description }));
+    } catch (publishError) {
+      console.error('Publish error:', publishError);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(publishError.message || publishError) }));
+    }
 
     return;
   }
@@ -656,18 +485,106 @@ const server = http.createServer((req, res) => {
           meta = null;
         }
       }
-      apps.push({
+      const reviewCount = meta?.reviewCount || (Array.isArray(meta?.reviews) ? meta.reviews.length : 0);
+    const averageRating = meta?.averageRating || 0;
+    apps.push({
         publishId: item.name,
         appName: meta?.appName || item.name,
         description: meta?.description || '',
         createdAt: meta?.createdAt || fs.statSync(appFolder).ctime.toISOString(),
         liveUrl: meta?.liveUrl || `/live/${item.name}/`,
+        appUrl: meta?.appUrl || meta?.liveUrl || `/live/${item.name}/`,
+        thumbnailUrl: meta?.thumbnailUrl || '',
+        reviewCount,
+        averageRating,
       });
     }
 
     apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ ok: true, apps }));
+    return;
+  }
+
+  if (requestPath === '/api/reviews' && req.method === 'GET') {
+    const publishId = url.searchParams.get('publishId');
+    if (!publishId) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'publishId query is required.' }));
+      return;
+    }
+
+    const metaPath = path.join(publishedRoot, publishId, 'meta.json');
+    if (!fs.existsSync(metaPath)) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'App not found.' }));
+      return;
+    }
+
+    let meta;
+    try {
+      meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Failed to read app metadata.' }));
+      return;
+    }
+
+    const reviews = Array.isArray(meta.reviews) ? meta.reviews : [];
+    const stats = computeReviewStats(reviews);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, reviews, averageRating: stats.averageRating, reviewCount: stats.reviewCount }));
+    return;
+  }
+
+  if (requestPath === '/api/review' && req.method === 'POST') {
+    try {
+      const rawBody = await parseRequestBody(req);
+      const data = rawBody ? JSON.parse(rawBody) : {};
+      const publishId = String(data.publishId || '').trim();
+      const rating = Number(data.rating || 0);
+      const comment = String(data.comment || '').trim();
+      const reviewer = String(data.reviewer || 'Anonymous').trim() || 'Anonymous';
+
+      if (!publishId) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'publishId is required.' }));
+        return;
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Rating must be a number between 1 and 5.' }));
+        return;
+      }
+
+      const metaPath = path.join(publishedRoot, publishId, 'meta.json');
+      if (!fs.existsSync(metaPath)) {
+        res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'App not found.' }));
+        return;
+      }
+
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+      meta.reviews = Array.isArray(meta.reviews) ? meta.reviews : [];
+      const review = {
+        reviewer,
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+      };
+      meta.reviews.push(review);
+      const stats = computeReviewStats(meta.reviews);
+      meta.averageRating = stats.averageRating;
+      meta.reviewCount = stats.reviewCount;
+      fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+
+      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, review, averageRating: meta.averageRating, reviewCount: meta.reviewCount }));
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(error.message || error) }));
+    }
     return;
   }
 

@@ -85,10 +85,98 @@
   </main>
 
   <script>
+    function renderStars(rating) {
+      const fullStars = Math.round(rating);
+      return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars);
+    }
+
+    async function submitReview(publishId, card) {
+      const ratingInput = card.querySelector('select[name="rating"]');
+      const commentInput = card.querySelector('textarea[name="comment"]');
+      const reviewerInput = card.querySelector('input[name="reviewer"]');
+      const rating = Number(ratingInput.value);
+      const comment = commentInput.value.trim();
+      const reviewer = reviewerInput.value.trim() || 'Anonymous';
+
+      try {
+        const response = await fetch('/api/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publishId, rating, comment, reviewer }),
+        });
+        const result = await response.json();
+        if (!result.ok) {
+          alert(result.error || 'Unable to submit review');
+          return;
+        }
+        await loadLiveApps();
+      } catch (error) {
+        alert('Unable to submit review');
+      }
+    }
+
     async function loadLiveApps() {
       const target = document.getElementById('live-apps-list');
       target.innerHTML = '<article class="surface-card project-card"><p>Loading live apps...</p></article>';
 
+      try {
+        const response = await fetch('/api/live-apps');
+        const payload = await response.json();
+        if (!payload.ok || !Array.isArray(payload.apps)) {
+          target.innerHTML = '<article class="surface-card project-card"><p>Unable to load live apps.</p></article>';
+          return;
+        }
+
+        if (payload.apps.length === 0) {
+          target.innerHTML = '<article class="surface-card project-card"><p>No live apps published yet.</p></article>';
+          return;
+        }
+
+        target.innerHTML = payload.apps.map((app) => {
+          return `
+            <article class='surface-card project-card'>
+              ${app.thumbnailUrl ? `<img class='project-thumb' src='${app.thumbnailUrl}' alt='${app.appName} thumbnail' />` : ''}
+              <div class='project-topline'>
+                <p class='project-type'>Published app</p>
+                <span class='project-status'>Live</span>
+              </div>
+              <h3>${app.appName}</h3>
+              <p>${app.description || 'No description provided.'}</p>
+              <p class='project-meta'>
+                ${app.reviewCount > 0 ? `<strong>${renderStars(app.averageRating)}</strong> ${app.averageRating} • ${app.reviewCount} review${app.reviewCount === 1 ? '' : 's'}` : '<strong>No reviews yet</strong>'}
+              </p>
+              <p class='project-meta'><strong>Published</strong>: ${new Date(app.createdAt).toLocaleDateString()}</p>
+              <a class='text-link' href='${app.liveUrl}' target='_blank' rel='noreferrer'>Open live app</a>
+              <form class='review-form' data-publish-id='${app.publishId}' onsubmit='event.preventDefault(); submitReview("${app.publishId}", this.closest("article"));'>
+                <label class='form-field'>
+                  <span>Reviewer</span>
+                  <input type='text' name='reviewer' placeholder='Your name' />
+                </label>
+                <label class='form-field'>
+                  <span>Rating</span>
+                  <select name='rating'>
+                    <option value='5'>5 stars</option>
+                    <option value='4'>4 stars</option>
+                    <option value='3'>3 stars</option>
+                    <option value='2'>2 stars</option>
+                    <option value='1'>1 star</option>
+                  </select>
+                </label>
+                <label class='form-field'>
+                  <span>Comment</span>
+                  <textarea name='comment' rows='3' placeholder='Share your experience'></textarea>
+                </label>
+                <button class='button button-secondary form-submit' type='submit'>Submit review</button>
+              </form>
+            </article>
+          `;
+        }).join('');
+      } catch (error) {
+        target.innerHTML = '<article class="surface-card project-card"><p>Unable to load live apps.</p></article>';
+      }
+    }
+
+    loadLiveApps();
       try {
         const response = await fetch('/api/live-apps');
         const payload = await response.json();

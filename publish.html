@@ -86,28 +86,28 @@
         </div>
 
         <article class='surface-card project-form' data-reveal>
-          <form action='/api/publish' method='post' enctype='multipart/form-data'>
+          <form action='/api/publish' method='post'>
             <div class='form-grid'>
               <label class='form-field'>
                 <span>App name</span>
                 <input type='text' name='app_name' placeholder='App name' required />
               </label>
               <label class='form-field'>
-                <span>Code bundle (.zip)</span>
-                <input type='file' name='code_bundle' accept='.zip' required />
+                <span>App URL</span>
+                <input type='url' name='app_url' placeholder='https://example.com' required />
               </label>
               <label class='form-field'>
-                <span>.env file</span>
-                <input type='file' name='env_file' accept='.env' required />
+                <span>Thumbnail URL</span>
+                <input type='url' name='thumbnail_url' placeholder='https://example.com/thumbnail.jpg' />
               </label>
             </div>
 
             <label class='form-field'>
               <span>Description</span>
-              <textarea name='description' rows='4' placeholder='Optional notes about this app'></textarea>
+              <textarea name='description' rows='4' placeholder='Describe the app, its purpose, and what users will see.'></textarea>
             </label>
 
-            <button class='button button-primary form-submit' type='submit'>Publish to FLOW-NET</button>
+            <button class='button button-primary form-submit' type='submit'>Add link to FLOW-NET</button>
           </form>
         </article>
       </div>

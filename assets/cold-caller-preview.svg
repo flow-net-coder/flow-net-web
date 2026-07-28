@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Cold Caller App Preview</title>
+  <desc id="desc">Dark dashboard mockup showing the DialFlow Pro cold caller interface.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0b1530"/>
+      <stop offset="55%" stop-color="#081120"/>
+      <stop offset="100%" stop-color="#040812"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#6df2cf"/>
+      <stop offset="100%" stop-color="#73a9ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#000" flood-opacity=".35"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <circle cx="1260" cy="130" r="180" fill="#6df2cf" fill-opacity=".08"/>
+  <circle cx="260" cy="840" r="220" fill="#73a9ff" fill-opacity=".08"/>
+  <rect x="90" y="80" width="1420" height="840" rx="42" fill="#0d1830" fill-opacity=".92" stroke="#224065" stroke-opacity=".55" filter="url(#shadow)"/>
+
+  <rect x="120" y="115" width="1360" height="74" rx="24" fill="#0f1d38" stroke="#244060" stroke-opacity=".45"/>
+  <rect x="146" y="137" width="34" height="34" rx="12" fill="url(#accent)"/>
+  <text x="198" y="160" fill="#f8fbff" font-family="Manrope, Arial, sans-serif" font-size="28" font-weight="700">DialFlow Pro</text>
+  <text x="1320" y="160" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="18" font-weight="600">Agent dashboard</text>
+
+  <rect x="120" y="220" width="360" height="610" rx="34" fill="#101c35" stroke="#274261" stroke-opacity=".55"/>
+  <text x="160" y="275" fill="#6df2cf" font-family="Manrope, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">AGENT LOGIN</text>
+  <text x="160" y="330" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="42" font-weight="700">Ready to dial</text>
+  <text x="160" y="372" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="22">Enter your PIN to start the queue.</text>
+
+  <rect x="160" y="430" width="280" height="72" rx="20" fill="#f8fbff"/>
+  <text x="300" y="478" fill="#07111f" font-family="Manrope, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="middle">Agent PIN</text>
+  <rect x="160" y="522" width="280" height="70" rx="20" fill="url(#accent)"/>
+  <text x="300" y="567" fill="#04101c" font-family="Manrope, Arial, sans-serif" font-size="23" font-weight="800" text-anchor="middle">Login</text>
+
+  <rect x="160" y="630" width="280" height="170" rx="24" fill="#0b1528" stroke="#22395a" stroke-opacity=".75"/>
+  <text x="182" y="672" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="18">Live status</text>
+  <text x="182" y="710" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="32" font-weight="700">Twilio ready</text>
+  <text x="182" y="748" fill="#6df2cf" font-family="Manrope, Arial, sans-serif" font-size="20">Dialpad / 3CX next</text>
+
+  <rect x="520" y="220" width="440" height="290" rx="34" fill="#101c35" stroke="#274261" stroke-opacity=".55"/>
+  <text x="560" y="275" fill="#6df2cf" font-family="Manrope, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">LEAD QUEUE</text>
+  <text x="560" y="325" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="34" font-weight="700">Warm leads, queued</text>
+  <rect x="560" y="360" width="360" height="44" rx="14" fill="#0b1528"/>
+  <rect x="560" y="416" width="320" height="44" rx="14" fill="#0b1528"/>
+  <rect x="560" y="472" width="280" height="44" rx="14" fill="#0b1528"/>
+  <text x="584" y="389" fill="#d2ddf6" font-family="Manrope, Arial, sans-serif" font-size="18">Acme Roofing</text>
+  <text x="584" y="445" fill="#d2ddf6" font-family="Manrope, Arial, sans-serif" font-size="18">Mosaic Services</text>
+  <text x="584" y="501" fill="#d2ddf6" font-family="Manrope, Arial, sans-serif" font-size="18">Local Clinic</text>
+
+  <rect x="1000" y="220" width="480" height="290" rx="34" fill="#101c35" stroke="#274261" stroke-opacity=".55"/>
+  <text x="1040" y="275" fill="#6df2cf" font-family="Manrope, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">CALL STATS</text>
+  <text x="1040" y="325" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="34" font-weight="700">Today at a glance</text>
+  <rect x="1040" y="360" width="120" height="120" rx="24" fill="#0b1528" stroke="#22395a" stroke-opacity=".75"/>
+  <rect x="1180" y="360" width="120" height="120" rx="24" fill="#0b1528" stroke="#22395a" stroke-opacity=".75"/>
+  <rect x="1320" y="360" width="120" height="120" rx="24" fill="#0b1528" stroke="#22395a" stroke-opacity=".75"/>
+  <text x="1100" y="412" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="40" font-weight="700" text-anchor="middle">18</text>
+  <text x="1100" y="449" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="16" text-anchor="middle">Calls</text>
+  <text x="1240" y="412" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="40" font-weight="700" text-anchor="middle">6</text>
+  <text x="1240" y="449" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="16" text-anchor="middle">Connects</text>
+  <text x="1380" y="412" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="40" font-weight="700" text-anchor="middle">4m</text>
+  <text x="1380" y="449" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="16" text-anchor="middle">Avg talk</text>
+
+  <rect x="520" y="540" width="960" height="290" rx="34" fill="#0f1d38" stroke="#274261" stroke-opacity=".55"/>
+  <text x="560" y="596" fill="#6df2cf" font-family="Manrope, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">WORKFLOW</text>
+  <text x="560" y="646" fill="#f8fbff" font-family="Space Grotesk, Arial, sans-serif" font-size="34" font-weight="700">Lead -> dial -> outcome -> save</text>
+  <text x="560" y="692" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="21">The interface is built for quick actions, clear follow-up, and clean call logging.</text>
+  <rect x="560" y="730" width="250" height="52" rx="18" fill="url(#accent)"/>
+  <text x="685" y="764" fill="#04101c" font-family="Manrope, Arial, sans-serif" font-size="20" font-weight="800" text-anchor="middle">Start Call</text>
+  <rect x="830" y="730" width="230" height="52" rx="18" fill="#12213f" stroke="#274261" stroke-opacity=".8"/>
+  <text x="945" y="764" fill="#f8fbff" font-family="Manrope, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle">Save Notes</text>
+  <rect x="1080" y="730" width="360" height="52" rx="18" fill="#12213f" stroke="#274261" stroke-opacity=".8"/>
+  <text x="1260" y="764" fill="#a9b6d3" font-family="Manrope, Arial, sans-serif" font-size="19" font-weight="600" text-anchor="middle">Queue stays focused on the next lead</text>
+</svg>

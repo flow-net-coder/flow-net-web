@@ -1,0 +1,12 @@
+{
+  "appName": "Cold Caller App",
+  "publishId": "cold-caller-app",
+  "appUrl": "https://coldcalle.up.railway.app/",
+  "thumbnailUrl": "/assets/cold-caller-preview.svg",
+  "description": "Agent login, lead queue, call outcomes, and stats for the DialFlow Pro cold-calling workflow.",
+  "createdAt": "2026-07-28T00:00:00.000Z",
+  "liveUrl": "https://coldcalle.up.railway.app/",
+  "reviews": [],
+  "averageRating": 0,
+  "reviewCount": 0
+}

@@ -1,17 +1,18 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
   SITE_URL: "",
-  CONTACT_EMAIL: "hello@flow-net.dev",
-  CONTACT_PHONE: "+27650000000",
-  CONTACT_PHONE_LABEL: "+27 65 000 0000",
-  PROJECT_ONE_NAME: "Your first app",
-  PROJECT_ONE_TYPE: "Live app slot",
-  PROJECT_ONE_STATUS: "Ready to connect",
-  PROJECT_ONE_SUMMARY: "Drop in a live app URL, thumbnail, and a short description when you are ready.",
-  PROJECT_ONE_META_LABEL: "Status",
-  PROJECT_ONE_META_VALUE: "Waiting for your URL",
-  PROJECT_ONE_CTA_LABEL: "Add your app",
-  PROJECT_ONE_URL: "",
+  CONTACT_EMAIL: "flow.net.v2@gmail.com",
+  CONTACT_PHONE: "+27659821883",
+  CONTACT_PHONE_LABEL: "065 982 1883 (WhatsApp)",
+  PROJECT_ONE_NAME: "Cold Caller App",
+  PROJECT_ONE_TYPE: "Cold caller dashboard",
+  PROJECT_ONE_STATUS: "Live app",
+  PROJECT_ONE_SUMMARY: "Agent login, lead queue, call outcomes, and stats for the DialFlow Pro cold-calling workflow.",
+  PROJECT_ONE_META_LABEL: "Focus",
+  PROJECT_ONE_META_VALUE: "Lead calling, agent stats, queue flow",
+  PROJECT_ONE_CTA_LABEL: "Open app",
+  PROJECT_ONE_URL: "https://coldcalle.up.railway.app/",
+  PROJECT_ONE_THUMBNAIL_URL: "assets/cold-caller-preview.svg",
   PROJECT_TWO_NAME: "Your second app",
   PROJECT_TWO_TYPE: "Live app slot",
   PROJECT_TWO_STATUS: "Ready to connect",
@@ -81,6 +82,13 @@ function applyPublicConfig() {
     } else {
       element.removeAttribute("target");
       element.removeAttribute("rel");
+    }
+  });
+
+  document.querySelectorAll("[data-config-src]").forEach((element) => {
+    const value = getPublicConfigValue(element.dataset.configSrc);
+    if (value) {
+      element.setAttribute("src", value);
     }
   });
 
@@ -249,7 +257,7 @@ async function renderLiveApps() {
           <p class="eyebrow">Nothing live yet</p>
           <h3>No apps have been published yet.</h3>
           <p>Add your first app in the publish form and it will show up here automatically.</p>
-          <a class="button button-primary" href="publish.html">Add your app</a>
+          <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
         </article>
       `;
       return;
@@ -262,7 +270,7 @@ async function renderLiveApps() {
         <p class="eyebrow">Load issue</p>
         <h3>We could not load the live app list.</h3>
         <p>Please try again in a moment or add apps from the publish page.</p>
-        <a class="button button-primary" href="publish.html">Add your app</a>
+        <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
       </article>
     `;
   }

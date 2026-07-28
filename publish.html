@@ -3,8 +3,8 @@
 <head>
   <meta charset='UTF-8' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-  <meta name='description' content='Upload your project archive and .env file to publish a live app on FLOW-NET.' />
-  <title>FLOW-NET V2 | Publish a Project</title>
+  <meta name='description' content='List a live app on FLOW-NET with a public URL, thumbnail, and short description.' />
+  <title>FLOW-NET V2 | Add Your App</title>
   <link rel='preconnect' href='https://fonts.googleapis.com' />
   <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
   <link href='https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap' rel='stylesheet' />
@@ -36,7 +36,7 @@
         <a href='pricing.html'>Pricing</a>
         <a href='contact.html'>Contact</a>
         <a href='links.html'>Links</a>
-        <a href='publish.html' class='nav-cta'>Publish an App</a>
+        <a href='publish.html' class='nav-cta'>Add your app</a>
       </nav>
     </div>
   </header>
@@ -45,15 +45,13 @@
     <section class='hero hero-subpage'>
       <div class='container hero-subpage-grid'>
         <div data-reveal>
-          <p class='eyebrow'>Publish a project</p>
-          <h1>Upload your code bundle and environment variables.</h1>
+          <p class='eyebrow'>Add your app</p>
+          <h1>List a live app with a clean public link.</h1>
           <p class='lead'>
-            Use FLOW-NET to deploy a live app from your code archive and a .env file.
-            The published app will be served from the FLOW-NET live apps platform.
+            This form collects the public URL, thumbnail, and description for an app that is already live. No source files or deploy archives are needed.
           </p>
           <p>
-            Compress your static app or frontend build into a zip file, upload a
-            valid .env file, and FLOW-NET will publish it under a live path.
+            Add the name of the app, the link people should open, and a short summary so the listing looks polished from day one.
           </p>
           <div class='hero-actions'>
             <a class='button button-primary' href='live.html'>View live apps</a>
@@ -63,11 +61,11 @@
 
         <aside class='dashboard-panel' data-reveal>
           <p class='panel-label'>What to include</p>
-          <h2>Publish successfully with these files.</h2>
+          <h2>Keep the listing simple and safe.</h2>
           <ul class='signal-list'>
-            <li>A zip archive containing your static app files.</li>
-            <li>A .env file with the environment variables the app requires.</li>
-            <li>An app name so FLOW-NET can create a unique live path.</li>
+            <li>A public live URL that opens the app without a login wall.</li>
+            <li>An optional thumbnail or screenshot URL.</li>
+            <li>A short description that tells people what the app does.</li>
           </ul>
         </aside>
       </div>
@@ -76,43 +74,74 @@
     <section class='section-block'>
       <div class='container'>
         <div class='section-heading' data-reveal>
-          <p class='eyebrow'>Upload details</p>
-          <h2>Publish a live app from your code base.</h2>
+          <p class='eyebrow'>Listing details</p>
+          <h2>Publish the public-facing version, not the source code.</h2>
           <p>
-            The upload below publishes your app to FLOW-NET resources. It is an
-            optional feature that complements the normal build and project
-            support services.
+            This setup keeps the site lighter and clearer. When you are ready, just add the live URL and FLOW-NET stores the listing for the live apps page.
           </p>
         </div>
 
         <article class='surface-card project-form' data-reveal>
-          <form action='/api/publish' method='post'>
+          <form action='/api/publish' method='post' data-enhance='true'>
             <div class='form-grid'>
               <label class='form-field'>
                 <span>App name</span>
-                <input type='text' name='app_name' placeholder='App name' required />
+                <input type='text' name='app_name' placeholder='The Bakery App' required />
               </label>
               <label class='form-field'>
                 <span>App URL</span>
-                <input type='url' name='app_url' placeholder='https://example.com' required />
+                <input type='url' name='app_url' placeholder='https://your-app.com' required />
               </label>
               <label class='form-field'>
                 <span>Thumbnail URL</span>
-                <input type='url' name='thumbnail_url' placeholder='https://example.com/thumbnail.jpg' />
+                <input type='url' name='thumbnail_url' placeholder='https://your-app.com/thumbnail.jpg' />
               </label>
             </div>
 
             <label class='form-field'>
               <span>Description</span>
-              <textarea name='description' rows='4' placeholder='Describe the app, its purpose, and what users will see.'></textarea>
+              <textarea name='description' rows='4' placeholder='Describe what the app does, who it is for, and what visitors should expect.'></textarea>
             </label>
 
-            <button class='button button-primary form-submit' type='submit'>Add link to FLOW-NET</button>
+            <p class='form-status' data-form-status hidden></p>
+
+            <button class='button button-primary form-submit' type='submit'>Add app to FLOW-NET</button>
           </form>
         </article>
       </div>
     </section>
   </main>
+
+  <footer class='site-footer'>
+    <div class='container footer-wrap'>
+      <div class='footer-grid'>
+        <div>
+          <p class='eyebrow'>FLOW-NET</p>
+          <h3>Simple listings for already-live apps.</h3>
+          <p>
+            The public URL is the source of truth. Add it here when the app is ready to share.
+          </p>
+        </div>
+
+        <div>
+          <p class='eyebrow'>Navigate</p>
+          <ul class='footer-links'>
+            <li><a href='index.html'>Home</a></li>
+            <li><a href='live.html'>Live apps</a></li>
+            <li><a href='portfolio.html'>Work</a></li>
+            <li><a href='contact.html'>Contact</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class='eyebrow'>Next step</p>
+          <ul class='footer-links'>
+            <li><a href='live.html'>See current listings</a></li>
+            <li><a href='contact.html'>Ask for help</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
-EOF

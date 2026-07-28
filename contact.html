@@ -48,7 +48,7 @@
         <a href="pricing.html">Pricing</a>
         <a href="contact.html" class="active" aria-current="page">Contact</a>
         <a href="links.html">Links</a>
-        <a href="publish.html" class="nav-cta">Build or Publish</a>
+        <a href="publish.html" class="nav-cta">Add your app</a>
       </nav>
     </div>
   </header>
@@ -58,15 +58,15 @@
       <div class="container hero-subpage-grid">
         <div data-reveal>
           <p class="eyebrow">Contact FLOW-NET</p>
-          <h1>Let's connect and turn the idea into something useful.</h1>
+          <h1>Let's turn the idea into something useful.</h1>
           <p class="lead">
             If you need a website, a customer flow, a dashboard, a bot, or a
-            backend-connected business tool, this is the place to start.
+            live app listing, this is the place to start.
           </p>
           <p>
-            Reach out with a rough idea, a current problem, or a project that
-            needs structure. FLOW-NET is designed to work directly, clearly,
-            and without unnecessary layers.
+            Share the rough idea, the problem you want solved, or the app you
+            want added. FLOW-NET is designed to work directly, clearly, and
+            without unnecessary layers.
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL">Email FLOW-NET</a>
@@ -90,16 +90,15 @@
       <div class="container">
         <div class="section-heading" data-reveal>
           <p class="eyebrow">Build or publish a project</p>
-          <h2>Share your app or tool idea and contact details here.</h2>
+          <h2>Share your project idea and contact details here.</h2>
           <p>
-            Fill in the project brief, what you need built or launched, and the
-            best way to reach you. This form is the fastest way to start the
-            live app conversation.
+            Use this form for a website, a workflow tool, a live app listing,
+            or anything else you want FLOW-NET to help shape.
           </p>
         </div>
 
         <article class="surface-card project-form" data-reveal>
-          <form action="/submit-project" method="post" novalidate>
+          <form action="/api/contact" method="post" data-enhance="true">
             <div class="form-grid">
               <label class="form-field">
                 <span>Full name</span>
@@ -117,16 +116,27 @@
                 <span>Company / business</span>
                 <input type="text" name="company" placeholder="Optional" />
               </label>
+              <label class="form-field">
+                <span>Project type</span>
+                <select name="project_type">
+                  <option value="">Select one</option>
+                  <option value="website">Website</option>
+                  <option value="app">Live app listing</option>
+                  <option value="automation">Automation</option>
+                  <option value="dashboard">Dashboard</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
             </div>
 
             <label class="form-field">
-              <span>Project idea</span>
-              <textarea name="project_idea" rows="4" placeholder="What do you want built?" required></textarea>
+              <span>Project message</span>
+              <textarea name="message" rows="4" placeholder="What do you want built, listed, or improved?" required></textarea>
             </label>
 
             <label class="form-field">
               <span>What problem should it solve?</span>
-              <textarea name="project_goal" rows="4" placeholder="Describe the main problem, process, or outcome you need." required></textarea>
+              <textarea name="project_goal" rows="4" placeholder="Describe the main problem, process, or outcome you need."></textarea>
             </label>
 
             <label class="form-field">
@@ -139,7 +149,8 @@
               <textarea name="additional_details" rows="4" placeholder="Any tools, integrations, or must-have features?"></textarea>
             </label>
 
-            <button class="button button-primary form-submit" type="submit">Send project brief</button>
+            <button class="button button-primary form-submit" type="submit">Send message</button>
+            <p class="form-status" data-form-status hidden></p>
           </form>
         </article>
       </div>
@@ -161,7 +172,7 @@
             </li>
             <li>
               <span>Website</span>
-              <a href="https://flow-net-pro.up.railway.app" data-config-href="SITE_URL" data-config-text="SITE_NAME">FLOW-NET</a>
+            <a href="index.html" data-config-href="SITE_URL" data-config-text="SITE_NAME">FLOW-NET</a>
             </li>
             <li>
               <span>Live projects</span>
@@ -222,18 +233,17 @@
       <div class="container spotlight">
         <article class="surface-card spotlight-copy" data-reveal>
           <p class="eyebrow">Live projects</p>
-          <h2>Try the current Railway-hosted project lineup.</h2>
+          <h2>Add your app lineup when you are ready.</h2>
           <p>
-            FLOW-NET now advertises the current showcase apps directly: the AAA
-            horse race predictor, the PIZZA_SHOP ordering app, THE_BAKERY demo,
-            the LOMBICOR recruitment portal, and DISJOINTED_SHOP.
+            Once you fill the public app variables, this section will show the
+            apps you want visitors to open directly.
           </p>
           <div class="footer-links">
-            <a href="https://aaa-demo-url.up.railway.app" data-config-href="PROJECT_ONE_URL" data-config-text="PROJECT_ONE_NAME">AAA</a>
-            <a href="https://pizza-shop-demo-url.up.railway.app" data-config-href="PROJECT_TWO_URL" data-config-text="PROJECT_TWO_NAME">PIZZA_SHOP</a>
-            <a href="https://the-bakery-demo-url.up.railway.app" data-config-href="PROJECT_THREE_URL" data-config-text="PROJECT_THREE_NAME">THE_BAKERY</a>
-            <a href="https://lombicor-demo-url.up.railway.app" data-config-href="PROJECT_FOUR_URL" data-config-text="PROJECT_FOUR_NAME">LOMBICOR_RECRUITMENT</a>
-            <a href="https://disjointed-demo-url.up.railway.app" data-config-href="PROJECT_FIVE_URL" data-config-text="PROJECT_FIVE_NAME">DISJOINTED_SHOP</a>
+            <a href="publish.html" data-config-href="PROJECT_ONE_URL" data-config-text="PROJECT_ONE_NAME">Your first app</a>
+            <a href="publish.html" data-config-href="PROJECT_TWO_URL" data-config-text="PROJECT_TWO_NAME">Your second app</a>
+            <a href="publish.html" data-config-href="PROJECT_THREE_URL" data-config-text="PROJECT_THREE_NAME">Your third app</a>
+            <a href="publish.html" data-config-href="PROJECT_FOUR_URL" data-config-text="PROJECT_FOUR_NAME">Your fourth app</a>
+            <a href="publish.html" data-config-href="PROJECT_FIVE_URL" data-config-text="PROJECT_FIVE_NAME">Your fifth app</a>
           </div>
           <p><small>Each live URL still comes from the public environment config.</small></p>
         </article>

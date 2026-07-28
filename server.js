@@ -8,50 +8,50 @@ const port = Number.parseInt(process.env.PORT || '3000', 10);
 
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: 'FLOW-NET',
-  SITE_URL: 'https://flow-net-pro.up.railway.app',
+  SITE_URL: '',
   CONTACT_EMAIL: 'hello@flow-net.dev',
   CONTACT_PHONE: '+27650000000',
   CONTACT_PHONE_LABEL: '+27 65 000 0000',
-  PROJECT_ONE_NAME: 'AAA',
-  PROJECT_ONE_TYPE: 'Horse race predictor app',
-  PROJECT_ONE_STATUS: 'Live demo',
-  PROJECT_ONE_SUMMARY: 'AI-powered South African horse race predictor with live race sync, guided analysis, and an installable race-day dashboard.',
-  PROJECT_ONE_META_LABEL: 'Focus',
-  PROJECT_ONE_META_VALUE: 'predictions, race cards, live insights',
-  PROJECT_ONE_CTA_LABEL: 'Try AAA',
-  PROJECT_ONE_URL: 'https://aaa-demo-url.up.railway.app',
-  PROJECT_TWO_NAME: 'PIZZA_SHOP',
-  PROJECT_TWO_TYPE: 'Pizza ordering app',
-  PROJECT_TWO_STATUS: 'Live demo',
-  PROJECT_TWO_SUMMARY: 'Pizza shop ordering app with menu browsing, delivery zones, cart flow, and Railway-backed checkout handling.',
-  PROJECT_TWO_META_LABEL: 'Focus',
-  PROJECT_TWO_META_VALUE: 'menu, delivery, checkout',
-  PROJECT_TWO_CTA_LABEL: 'Try PIZZA_SHOP',
-  PROJECT_TWO_URL: 'https://pizza-shop-demo-url.up.railway.app',
-  PROJECT_THREE_NAME: 'THE_BAKERY',
-  PROJECT_THREE_TYPE: 'Bakery showcase',
-  PROJECT_THREE_STATUS: 'Demo build',
-  PROJECT_THREE_SUMMARY: 'Bakery website demo with a menu-first layout, warm brand storytelling, and a presentation style made for local food businesses.',
-  PROJECT_THREE_META_LABEL: 'Focus',
-  PROJECT_THREE_META_VALUE: 'brand, menu, local presence',
-  PROJECT_THREE_CTA_LABEL: 'View THE_BAKERY',
-  PROJECT_THREE_URL: 'https://the-bakery-demo-url.up.railway.app',
-  PROJECT_FOUR_NAME: 'LOMBICOR_RECRUITMENT',
-  PROJECT_FOUR_TYPE: 'Recruitment portal',
-  PROJECT_FOUR_STATUS: 'Live on Railway',
-  PROJECT_FOUR_SUMMARY: 'Recruitment portal with applicant intake, document uploads, admin review, and placement workflow.',
-  PROJECT_FOUR_META_LABEL: 'Focus',
-  PROJECT_FOUR_META_VALUE: 'applicants, documents, admin review',
-  PROJECT_FOUR_CTA_LABEL: 'Open LOMBICOR',
-  PROJECT_FOUR_URL: 'https://lombicor-demo-url.up.railway.app',
-  PROJECT_FIVE_NAME: 'DISJOINTED_SHOP',
-  PROJECT_FIVE_TYPE: 'Storefront app',
-  PROJECT_FIVE_STATUS: 'Live on Railway',
-  PROJECT_FIVE_SUMMARY: 'Storefront and admin app with product catalog, account flow, cart, checkout, and order management.',
-  PROJECT_FIVE_META_LABEL: 'Focus',
-  PROJECT_FIVE_META_VALUE: 'catalog, orders, admin tools',
-  PROJECT_FIVE_CTA_LABEL: 'Open DISJOINTED',
-  PROJECT_FIVE_URL: 'https://disjointed-demo-url.up.railway.app',
+  PROJECT_ONE_NAME: 'Your first app',
+  PROJECT_ONE_TYPE: 'Live app slot',
+  PROJECT_ONE_STATUS: 'Ready to connect',
+  PROJECT_ONE_SUMMARY: 'Drop in a live app URL, thumbnail, and a short description when you are ready.',
+  PROJECT_ONE_META_LABEL: 'Status',
+  PROJECT_ONE_META_VALUE: 'Waiting for your URL',
+  PROJECT_ONE_CTA_LABEL: 'Add your app',
+  PROJECT_ONE_URL: '',
+  PROJECT_TWO_NAME: 'Your second app',
+  PROJECT_TWO_TYPE: 'Live app slot',
+  PROJECT_TWO_STATUS: 'Ready to connect',
+  PROJECT_TWO_SUMMARY: 'Use this slot for another public app, a client showcase, or a product demo.',
+  PROJECT_TWO_META_LABEL: 'Status',
+  PROJECT_TWO_META_VALUE: 'Waiting for your URL',
+  PROJECT_TWO_CTA_LABEL: 'Add your app',
+  PROJECT_TWO_URL: '',
+  PROJECT_THREE_NAME: 'Your third app',
+  PROJECT_THREE_TYPE: 'Live app slot',
+  PROJECT_THREE_STATUS: 'Ready to connect',
+  PROJECT_THREE_SUMMARY: 'Keep the public list tidy while you add the apps you want visitors to open.',
+  PROJECT_THREE_META_LABEL: 'Status',
+  PROJECT_THREE_META_VALUE: 'Waiting for your URL',
+  PROJECT_THREE_CTA_LABEL: 'Add your app',
+  PROJECT_THREE_URL: '',
+  PROJECT_FOUR_NAME: 'Your fourth app',
+  PROJECT_FOUR_TYPE: 'Live app slot',
+  PROJECT_FOUR_STATUS: 'Ready to connect',
+  PROJECT_FOUR_SUMMARY: 'Another app slot for a live product, workflow tool, or customer-facing portal.',
+  PROJECT_FOUR_META_LABEL: 'Status',
+  PROJECT_FOUR_META_VALUE: 'Waiting for your URL',
+  PROJECT_FOUR_CTA_LABEL: 'Add your app',
+  PROJECT_FOUR_URL: '',
+  PROJECT_FIVE_NAME: 'Your fifth app',
+  PROJECT_FIVE_TYPE: 'Live app slot',
+  PROJECT_FIVE_STATUS: 'Ready to connect',
+  PROJECT_FIVE_SUMMARY: 'Use this final slot for your strongest live app or the next one you want to launch.',
+  PROJECT_FIVE_META_LABEL: 'Status',
+  PROJECT_FIVE_META_VALUE: 'Waiting for your URL',
+  PROJECT_FIVE_CTA_LABEL: 'Add your app',
+  PROJECT_FIVE_URL: '',
 };
 
 const mimeTypes = {
@@ -152,10 +152,18 @@ function sendFile(res, filePath) {
 const WHATB_PROXY_TARGET = process.env.WHATB_PROXY_TARGET || '';
 const WHATB_PROXY_PATH = process.env.WHATB_PROXY_PATH || '/whatb';
 const publishedRoot = path.join(rootDir, 'published');
+const contactSubmissionsPath = path.join(rootDir, 'data', 'contact-submissions.json');
 
 function ensurePublishedRoot() {
   if (!fs.existsSync(publishedRoot)) {
     fs.mkdirSync(publishedRoot, { recursive: true });
+  }
+}
+
+function ensureDataRoot() {
+  const dataRoot = path.dirname(contactSubmissionsPath);
+  if (!fs.existsSync(dataRoot)) {
+    fs.mkdirSync(dataRoot, { recursive: true });
   }
 }
 
@@ -183,6 +191,34 @@ function parseRequestBody(req) {
     req.on('end', () => resolve(body));
     req.on('error', reject);
   });
+}
+
+function parseBodyPayload(rawBody) {
+  const body = String(rawBody || '').trim();
+  if (!body) return {};
+  try {
+    return JSON.parse(body);
+  } catch {
+    return Object.fromEntries(new URLSearchParams(body));
+  }
+}
+
+function readContactSubmissions() {
+  ensureDataRoot();
+  if (!fs.existsSync(contactSubmissionsPath)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(contactSubmissionsPath, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveContactSubmission(submission) {
+  ensureDataRoot();
+  const submissions = readContactSubmissions();
+  submissions.unshift(submission);
+  fs.writeFileSync(contactSubmissionsPath, JSON.stringify(submissions, null, 2));
 }
 
 function computeReviewStats(reviews) {
@@ -540,7 +576,7 @@ const server = http.createServer(async (req, res) => {
   if (requestPath === '/api/review' && req.method === 'POST') {
     try {
       const rawBody = await parseRequestBody(req);
-      const data = rawBody ? JSON.parse(rawBody) : {};
+      const data = parseBodyPayload(rawBody);
       const publishId = String(data.publishId || '').trim();
       const rating = Number(data.rating || 0);
       const comment = String(data.comment || '').trim();
@@ -581,6 +617,53 @@ const server = http.createServer(async (req, res) => {
 
       res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: true, review, averageRating: meta.averageRating, reviewCount: meta.reviewCount }));
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(error.message || error) }));
+    }
+    return;
+  }
+
+  if (requestPath === '/api/contact' && req.method === 'POST') {
+    try {
+      const rawBody = await parseRequestBody(req);
+      const data = parseBodyPayload(rawBody);
+      const name = String(data.name || '').trim();
+      const email = String(data.email || '').trim();
+      const phone = String(data.phone || '').trim();
+      const company = String(data.company || '').trim();
+      const projectType = String(data.project_type || data.projectType || '').trim();
+      const message = String(data.message || data.project_idea || data.projectGoal || data.project_goal || '').trim();
+      const timeline = String(data.timeline || '').trim();
+      const additionalDetails = String(data.additional_details || data.additionalDetails || '').trim();
+
+      if (!name || !email || !message) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Name, email, and message are required.' }));
+        return;
+      }
+
+      const submission = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        name,
+        email,
+        phone,
+        company,
+        projectType,
+        message,
+        timeline,
+        additionalDetails,
+        createdAt: new Date().toISOString(),
+      };
+
+      saveContactSubmission(submission);
+
+      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        ok: true,
+        message: 'Thanks. Your message has been received.',
+        submission,
+      }));
     } catch (error) {
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: false, error: String(error.message || error) }));
@@ -848,6 +931,8 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-server.listen(port, () => {
-  console.log(`FLOW-NET site running on http://127.0.0.1:${port}`);
+const host = process.env.HOST || '0.0.0.0';
+
+server.listen(port, host, () => {
+  console.log(`FLOW-NET site running on http://${host}:${port}`);
 });

@@ -10,3 +10,16 @@
 - [x] Add a clean preview graphic for the cold caller app.
 - [x] Keep the links page on the safe internal fallback structure.
 - [x] Validate the server and client syntax after the edits.
+- [x] Push the FLOW-NET refocus commit to GitHub.
+
+## Current Update Pass
+
+- [x] Repoint the main dashboard CTA to the contact form.
+- [x] Remove user-upload framing from the public site copy.
+- [x] Reword the homepage around small businesses, bigger teams, co-ops, and individual founders.
+- [x] Update the delivery stack to Railway, Supabase, Vercel, and Redis.
+- [x] Reframe the goal as filling the automation gap.
+- [x] Make the live apps page read as FLOW-NET-owned apps.
+- [x] Keep the links page as a simple list for tools you add later.
+- [x] Clean the shared app card labels from publish/published wording.
+- [x] Re-run syntax validation after the final wording pass.

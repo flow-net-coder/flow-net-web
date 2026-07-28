@@ -227,12 +227,12 @@ function renderAppCard(app) {
     <article class="surface-card project-card">
       ${thumbnail}
       <div class="project-topline">
-        <p class="project-type">Published app</p>
+        <p class="project-type">FLOW-NET app</p>
         <span class="project-status">Live</span>
       </div>
       <h3>${title}</h3>
       <p>${description}</p>
-      <p class="project-meta"><strong>Published</strong>: ${createdAt || "Recently"}</p>
+      <p class="project-meta"><strong>Added</strong>: ${createdAt || "Recently"}</p>
       <a class="text-link" href="${liveUrl}" target="_blank" rel="noreferrer">Open live app</a>
     </article>
   `;
@@ -255,8 +255,8 @@ async function renderLiveApps() {
       target.innerHTML = `
         <article class="surface-card project-card empty-state-card">
           <p class="eyebrow">Nothing live yet</p>
-          <h3>No apps have been published yet.</h3>
-          <p>Add your first app in the publish form and it will show up here automatically.</p>
+          <h3>No apps have been added yet.</h3>
+          <p>Add your first app in the contact form and it will show up here automatically.</p>
           <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
         </article>
       `;
@@ -269,7 +269,7 @@ async function renderLiveApps() {
       <article class="surface-card project-card empty-state-card">
         <p class="eyebrow">Load issue</p>
         <h3>We could not load the live app list.</h3>
-        <p>Please try again in a moment or add apps from the publish page.</p>
+        <p>Please try again in a moment or add apps from the contact form.</p>
         <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
       </article>
     `;

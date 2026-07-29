@@ -69,3 +69,18 @@ test('exposes health and connected-app endpoints', async () => {
   const webhookPayload = await webhookResponse.json();
   assert.equal(webhookPayload.ok, true);
 });
+
+test('seeds curated website listings with review metadata', async () => {
+  const response = await fetch('http://127.0.0.1:3100/api/live-apps');
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.ok, true);
+  assert.ok(Array.isArray(payload.apps));
+  assert.ok(payload.apps.length >= 6);
+
+  const coldMailer = payload.apps.find((app) => app.appName === 'Cold Mailer');
+  assert.ok(coldMailer);
+  assert.ok(coldMailer.thumbnailUrl.includes('/assets/'));
+  assert.equal(coldMailer.reviewCount, 0);
+  assert.equal(coldMailer.averageRating, 0);
+});

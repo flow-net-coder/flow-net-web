@@ -1,0 +1,14 @@
+{
+  "appName": "Pizza",
+  "publishId": "pizza",
+  "appUrl": "https://flow-net-projects.github.io/PIZZA/",
+  "thumbnailUrl": "/assets/pizza-preview.svg",
+  "description": "Pizza ordering demo with a simple digital menu and a polished front-end experience.",
+  "category": "Food ordering",
+  "loginDetails": "No login required for the public site.",
+  "createdAt": "2026-07-29T05:03:12.836Z",
+  "liveUrl": "https://flow-net-projects.github.io/PIZZA/",
+  "reviews": [],
+  "averageRating": 0,
+  "reviewCount": 0
+}

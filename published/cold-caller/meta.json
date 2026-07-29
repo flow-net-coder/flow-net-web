@@ -1,0 +1,14 @@
+{
+  "appName": "Cold Caller",
+  "publishId": "cold-caller",
+  "appUrl": "https://coldcalle.up.railway.app/",
+  "thumbnailUrl": "/assets/cold-caller-preview.svg",
+  "description": "Lead queue and outbound calling workflow with admin and agent roles. Admin: 2026 · Agent: tester.",
+  "category": "Call centre ops",
+  "loginDetails": "Admin login: 2026 · Agent login: tester",
+  "createdAt": "2026-07-29T05:03:12.835Z",
+  "liveUrl": "https://coldcalle.up.railway.app/",
+  "reviews": [],
+  "averageRating": 0,
+  "reviewCount": 0
+}

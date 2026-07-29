@@ -1,50 +1,54 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
-  SITE_URL: "",
+  SITE_URL: "https://flow-net-pro.up.railway.app",
   CONTACT_EMAIL: "flow.net.v2@gmail.com",
   CONTACT_PHONE: "+27659821883",
   CONTACT_PHONE_LABEL: "065 982 1883 (WhatsApp)",
-  PROJECT_ONE_NAME: "Cold Caller App",
-  PROJECT_ONE_TYPE: "Cold caller dashboard",
+  PROJECT_ONE_NAME: "COLD CALLER",
+  PROJECT_ONE_TYPE: "Cold calling dashboard",
   PROJECT_ONE_STATUS: "Live app",
-  PROJECT_ONE_SUMMARY: "Agent login, lead queue, call outcomes, and stats for the DialFlow Pro cold-calling workflow.",
-  PROJECT_ONE_META_LABEL: "Focus",
-  PROJECT_ONE_META_VALUE: "Lead calling, agent stats, queue flow",
-  PROJECT_ONE_CTA_LABEL: "Open app",
+  PROJECT_ONE_SUMMARY: "Agent login, lead queue, call outcomes, and stats for the DialFlow Pro workflow. Login: ADMIN 2026 / AGENT tester.",
+  PROJECT_ONE_META_LABEL: "Access",
+  PROJECT_ONE_META_VALUE: "Admin 2026, Agent tester",
+  PROJECT_ONE_CTA_LABEL: "Open COLD CALLER",
   PROJECT_ONE_URL: "https://coldcalle.up.railway.app/",
   PROJECT_ONE_THUMBNAIL_URL: "assets/cold-caller-preview.svg",
-  PROJECT_TWO_NAME: "Your second app",
-  PROJECT_TWO_TYPE: "Live app slot",
-  PROJECT_TWO_STATUS: "Ready to connect",
-  PROJECT_TWO_SUMMARY: "Use this slot for another public app, a client showcase, or a product demo.",
-  PROJECT_TWO_META_LABEL: "Status",
-  PROJECT_TWO_META_VALUE: "Waiting for your URL",
-  PROJECT_TWO_CTA_LABEL: "Add your app",
-  PROJECT_TWO_URL: "",
-  PROJECT_THREE_NAME: "Your third app",
-  PROJECT_THREE_TYPE: "Live app slot",
-  PROJECT_THREE_STATUS: "Ready to connect",
-  PROJECT_THREE_SUMMARY: "Keep the public list tidy while you add the apps you want visitors to open.",
-  PROJECT_THREE_META_LABEL: "Status",
-  PROJECT_THREE_META_VALUE: "Waiting for your URL",
-  PROJECT_THREE_CTA_LABEL: "Add your app",
-  PROJECT_THREE_URL: "",
-  PROJECT_FOUR_NAME: "Your fourth app",
-  PROJECT_FOUR_TYPE: "Live app slot",
-  PROJECT_FOUR_STATUS: "Ready to connect",
-  PROJECT_FOUR_SUMMARY: "Another app slot for a live product, workflow tool, or customer-facing portal.",
-  PROJECT_FOUR_META_LABEL: "Status",
-  PROJECT_FOUR_META_VALUE: "Waiting for your URL",
-  PROJECT_FOUR_CTA_LABEL: "Add your app",
-  PROJECT_FOUR_URL: "",
-  PROJECT_FIVE_NAME: "Your fifth app",
-  PROJECT_FIVE_TYPE: "Live app slot",
-  PROJECT_FIVE_STATUS: "Ready to connect",
-  PROJECT_FIVE_SUMMARY: "Use this final slot for your strongest live app or the next one you want to launch.",
-  PROJECT_FIVE_META_LABEL: "Status",
-  PROJECT_FIVE_META_VALUE: "Waiting for your URL",
-  PROJECT_FIVE_CTA_LABEL: "Add your app",
-  PROJECT_FIVE_URL: "",
+  PROJECT_TWO_NAME: "COLD MAILER",
+  PROJECT_TWO_TYPE: "Email outreach app",
+  PROJECT_TWO_STATUS: "Live app",
+  PROJECT_TWO_SUMMARY: "Cold mail campaign manager with templated outreach, tracking, and queue control.",
+  PROJECT_TWO_META_LABEL: "URL",
+  PROJECT_TWO_META_VALUE: "https://cold-mailer.up.railway.app",
+  PROJECT_TWO_CTA_LABEL: "Open COLD MAILER",
+  PROJECT_TWO_URL: "https://cold-mailer.up.railway.app/",
+  PROJECT_TWO_THUMBNAIL_URL: "assets/cold-mailer-preview.svg",
+  PROJECT_THREE_NAME: "WHATSAPP BOT WORKSPACE",
+  PROJECT_THREE_TYPE: "WhatsApp bot workspace",
+  PROJECT_THREE_STATUS: "Live app",
+  PROJECT_THREE_SUMMARY: "Workspace for WhatsApp bot automation and workflow testing. Password: 2026.",
+  PROJECT_THREE_META_LABEL: "Password",
+  PROJECT_THREE_META_VALUE: "2026",
+  PROJECT_THREE_CTA_LABEL: "Open WhatsApp workspace",
+  PROJECT_THREE_URL: "https://what-b-production.up.railway.app/",
+  PROJECT_THREE_THUMBNAIL_URL: "assets/whatsapp-bot-preview.svg",
+  PROJECT_FOUR_NAME: "CV EDITOR",
+  PROJECT_FOUR_TYPE: "Resume editor",
+  PROJECT_FOUR_STATUS: "Live app",
+  PROJECT_FOUR_SUMMARY: "Dynamic CV editor for creating, editing and publishing professional curriculum vitae.",
+  PROJECT_FOUR_META_LABEL: "Hosted",
+  PROJECT_FOUR_META_VALUE: "GitHub Pages",
+  PROJECT_FOUR_CTA_LABEL: "Open CV EDITOR",
+  PROJECT_FOUR_URL: "https://letscrypto25.github.io/Dynamic-CV./",
+  PROJECT_FOUR_THUMBNAIL_URL: "assets/cv-editor-preview.svg",
+  PROJECT_FIVE_NAME: "THE BAKERY",
+  PROJECT_FIVE_TYPE: "Bakery showcase",
+  PROJECT_FIVE_STATUS: "Live demo",
+  PROJECT_FIVE_SUMMARY: "Bakery website demo with a menu-first layout, warm brand storytelling, and product presentation.",
+  PROJECT_FIVE_META_LABEL: "Hosted",
+  PROJECT_FIVE_META_VALUE: "GitHub Pages",
+  PROJECT_FIVE_CTA_LABEL: "Open THE BAKERY",
+  PROJECT_FIVE_URL: "https://letscrypto25.github.io/THE_BAKERY-/",
+  PROJECT_FIVE_THUMBNAIL_URL: "assets/bakery-preview.svg",
 };
 
 const publicConfig = {
@@ -219,6 +223,19 @@ function renderAppCard(app) {
   const description = escapeHtml(app.description || "No description provided yet.");
   const liveUrl = escapeHtml(app.liveUrl || app.appUrl || "#");
   const createdAt = app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "";
+  const category = app.category ? `<p class="project-meta"><strong>Category</strong>: ${escapeHtml(app.category)}</p>` : "";
+  const loginDetails = app.loginDetails ? `<p class="project-meta"><strong>Login</strong>: ${escapeHtml(app.loginDetails)}</p>` : "";
+  const reviewSummary = app.reviewCount > 0
+    ? `${Number(app.averageRating || 0).toFixed(1)} ★ · ${app.reviewCount} review${app.reviewCount === 1 ? "" : "s"}`
+    : "No reviews yet";
+  const reviewsMarkup = Array.isArray(app.reviews) && app.reviews.length > 0
+    ? app.reviews.slice(0, 2).map((review) => `
+        <div class="review-item">
+          <p class="review-headline">${escapeHtml(review.reviewer || "Guest")} · ${Number(review.rating || 0)}★</p>
+          <p>${escapeHtml(review.comment || "Great experience.")}</p>
+        </div>
+      `).join("")
+    : '<div class="review-item"><p class="review-headline">Sample review</p><p>Mock feedback will appear here until a visitor adds their own.</p></div>';
   const thumbnail = app.thumbnailUrl
     ? `<img class="project-thumb" src="${escapeHtml(app.thumbnailUrl)}" alt="${title} preview" />`
     : "";
@@ -232,14 +249,105 @@ function renderAppCard(app) {
       </div>
       <h3>${title}</h3>
       <p>${description}</p>
+      ${category}
+      ${loginDetails}
+      <p class="project-meta"><strong>Reviews</strong>: ${escapeHtml(reviewSummary)}</p>
+      <div class="review-list">${reviewsMarkup}</div>
       <p class="project-meta"><strong>Added</strong>: ${createdAt || "Recently"}</p>
       <a class="text-link" href="${liveUrl}" target="_blank" rel="noreferrer">Open live app</a>
+      <form class="review-form" data-review-form data-publish-id="${escapeHtml(app.publishId || "")}">
+        <div class="form-field">
+          <span>Your name</span>
+          <input name="reviewer" placeholder="Your name" />
+        </div>
+        <div class="form-field">
+          <span>Rating</span>
+          <select name="rating">
+            <option value="5">5 ★</option>
+            <option value="4">4 ★</option>
+            <option value="3">3 ★</option>
+            <option value="2">2 ★</option>
+            <option value="1">1 ★</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <span>Review</span>
+          <textarea name="comment" rows="3" placeholder="Tell others what stood out."></textarea>
+        </div>
+        <button class="button button-primary" type="submit">Leave review</button>
+        <p class="form-status" data-review-status hidden></p>
+      </form>
     </article>
   `;
 }
 
+function attachReviewForms() {
+  document.querySelectorAll("[data-review-form]").forEach((form) => {
+    if (form.dataset.bound === "true") {
+      return;
+    }
+
+    form.dataset.bound = "true";
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = form.querySelector('[type="submit"]');
+      const status = form.querySelector("[data-review-status]");
+      const publishId = form.dataset.publishId || "";
+      const reviewer = (form.querySelector('[name="reviewer"]').value || "").trim();
+      const rating = Number(form.querySelector('[name="rating"]').value || 0);
+      const comment = (form.querySelector('[name="comment"]').value || "").trim();
+
+      if (!publishId) {
+        if (status) {
+          status.hidden = false;
+          status.dataset.state = "error";
+          status.textContent = "This app is not ready for reviews yet.";
+        }
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Posting...";
+      }
+
+      try {
+        const response = await fetch("/api/review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publishId, reviewer, rating, comment }),
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok || payload.ok === false) {
+          throw new Error(payload.error || "Review could not be saved.");
+        }
+
+        form.reset();
+        if (status) {
+          status.hidden = false;
+          status.dataset.state = "success";
+          status.textContent = "Thanks. Your review has been added.";
+        }
+        renderLiveApps();
+      } catch (error) {
+        if (status) {
+          status.hidden = false;
+          status.dataset.state = "error";
+          status.textContent = error.message || "Something went wrong.";
+        }
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = "Leave review";
+        }
+      }
+    });
+  });
+}
+
 async function renderLiveApps() {
-  const target = document.getElementById("live-apps-list");
+  const target = document.getElementById("live-apps-list") || document.getElementById("portfolio-apps-list");
   if (!target) {
     return;
   }
@@ -256,7 +364,7 @@ async function renderLiveApps() {
         <article class="surface-card project-card empty-state-card">
           <p class="eyebrow">Nothing live yet</p>
           <h3>No apps have been added yet.</h3>
-          <p>Add your first app in the contact form and it will show up here automatically.</p>
+          <p>Add a live URL and thumbnail and it will show up here automatically.</p>
           <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
         </article>
       `;
@@ -264,12 +372,13 @@ async function renderLiveApps() {
     }
 
     target.innerHTML = apps.map(renderAppCard).join("");
+    attachReviewForms();
   } catch (error) {
     target.innerHTML = `
       <article class="surface-card project-card empty-state-card">
         <p class="eyebrow">Load issue</p>
         <h3>We could not load the live app list.</h3>
-        <p>Please try again in a moment or add apps from the contact form.</p>
+        <p>Please try again in a moment or add a live URL and thumbnail.</p>
         <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
       </article>
     `;
@@ -278,7 +387,7 @@ async function renderLiveApps() {
 
 function initPageSpecificFeatures() {
   const page = document.body.dataset.page;
-  if (page === "live") {
+  if (page === "live" || page === "portfolio") {
     renderLiveApps();
   }
 }

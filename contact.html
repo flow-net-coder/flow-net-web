@@ -48,7 +48,7 @@
         <a href="pricing.html">Pricing</a>
         <a href="contact.html" class="active" aria-current="page">Contact</a>
         <a href="links.html">Links</a>
-        <a href="contact.html#start-project-form" class="nav-cta">Add your app</a>
+        <a href="publish.html" class="nav-cta">Host app</a>
       </nav>
     </div>
   </header>
@@ -58,29 +58,29 @@
       <div class="container hero-subpage-grid">
         <div data-reveal>
           <p class="eyebrow">Contact FLOW-NET</p>
-          <h1>Let's turn the idea into something useful.</h1>
+          <h1>Let's connect and turn the idea into something useful.</h1>
           <p class="lead">
-            If you need a website, customer flow, dashboard, bot, or app
-            showcase, this is the place to start.
+            If you need a website, a customer flow, a dashboard, a bot, or a
+            backend-connected business tool, this is the place to start.
           </p>
           <p>
-            Share the rough idea, the problem you want solved, or the app you
-            want added. FLOW-NET keeps the path direct and the next step easy
-            to see.
+            Reach out with a rough idea, a current problem, or a project that
+            needs structure. FLOW-NET is designed to work directly, clearly,
+            and without unnecessary layers.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#start-project-form">Contact us</a>
-            <a class="button button-secondary" href="live.html">See live apps</a>
+            <a class="button button-primary" href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL">Email FLOW-NET</a>
+            <a class="button button-secondary" href="portfolio.html">See live projects</a>
           </div>
         </div>
 
         <aside class="dashboard-panel" data-reveal>
-          <p class="panel-label">Fastest path</p>
-          <h2>How to start with FLOW-NET</h2>
+          <p class="panel-label">Fastest channels</p>
+          <h2>Best ways to reach out</h2>
           <ul class="signal-list">
-            <li>Tell us what you need built or fixed.</li>
-            <li>Share the timeline, budget, and any tools it must connect to.</li>
-            <li>We reply with the cleanest next step instead of a long loop.</li>
+            <li>Email for project details, scope, and longer context.</li>
+            <li>Phone for direct discussion and quick follow-up.</li>
+            <li>Live project links if you want to see current deployed work.</li>
           </ul>
         </aside>
       </div>
@@ -89,16 +89,17 @@
     <section class="section-block" id="start-project-form">
       <div class="container">
         <div class="section-heading" data-reveal>
-          <p class="eyebrow">Start here</p>
-          <h2>Tell FLOW-NET what you want to build, fix, or connect.</h2>
+          <p class="eyebrow">Build or publish a project</p>
+          <h2>Share your app or tool idea and contact details here.</h2>
           <p>
-            Use this form for a website, workflow tool, dashboard, cold caller
-            app, or anything else that needs a practical plan.
+            Fill in the project brief, what you need built or launched, and the
+            best way to reach you. This form is the fastest way to start the
+            live app conversation.
           </p>
         </div>
 
         <article class="surface-card project-form" data-reveal>
-          <form action="/api/contact" method="post" data-enhance="true">
+          <form action="/submit-project" method="post" novalidate>
             <div class="form-grid">
               <label class="form-field">
                 <span>Full name</span>
@@ -116,27 +117,16 @@
                 <span>Company / business</span>
                 <input type="text" name="company" placeholder="Optional" />
               </label>
-              <label class="form-field">
-                <span>Project type</span>
-                <select name="project_type">
-                  <option value="">Select one</option>
-                  <option value="website">Website</option>
-                  <option value="app">App or tool</option>
-                  <option value="automation">Automation</option>
-                  <option value="dashboard">Dashboard</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
             </div>
 
             <label class="form-field">
-              <span>Project message</span>
-              <textarea name="message" rows="4" placeholder="What do you want built, listed, or improved?" required></textarea>
+              <span>Project idea</span>
+              <textarea name="project_idea" rows="4" placeholder="What do you want built?" required></textarea>
             </label>
 
             <label class="form-field">
               <span>What problem should it solve?</span>
-              <textarea name="project_goal" rows="4" placeholder="Describe the main problem, process, or outcome you need."></textarea>
+              <textarea name="project_goal" rows="4" placeholder="Describe the main problem, process, or outcome you need." required></textarea>
             </label>
 
             <label class="form-field">
@@ -149,8 +139,7 @@
               <textarea name="additional_details" rows="4" placeholder="Any tools, integrations, or must-have features?"></textarea>
             </label>
 
-            <button class="button button-primary form-submit" type="submit">Send message</button>
-            <p class="form-status" data-form-status hidden></p>
+            <button class="button button-primary form-submit" type="submit">Send project brief</button>
           </form>
         </article>
       </div>
@@ -164,31 +153,31 @@
           <ul class="contact-list">
             <li>
               <span>Email</span>
-              <a href="mailto:flow.net.v2@gmail.com" data-config-mailto="CONTACT_EMAIL" data-config-text="CONTACT_EMAIL">flow.net.v2@gmail.com</a>
+              <a href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL" data-config-text="CONTACT_EMAIL">hello@flow-net.dev</a>
             </li>
             <li>
-              <span>WhatsApp</span>
-              <a href="tel:+27659821883" data-config-tel="CONTACT_PHONE" data-config-text="CONTACT_PHONE_LABEL">065 982 1883 (WhatsApp)</a>
+              <span>Phone</span>
+              <a href="tel:+27650000000" data-config-tel="CONTACT_PHONE" data-config-text="CONTACT_PHONE_LABEL">+27 65 000 0000</a>
             </li>
             <li>
               <span>Website</span>
-            <a href="index.html" data-config-href="SITE_URL" data-config-text="SITE_NAME">FLOW-NET</a>
+              <a href="https://flow-net-pro.up.railway.app" data-config-href="SITE_URL" data-config-text="SITE_NAME">FLOW-NET</a>
             </li>
             <li>
               <span>Live projects</span>
-              <a href="live.html">See the current apps</a>
+              <a href="portfolio.html">See the project lineup</a>
             </li>
           </ul>
         </article>
 
         <article class="surface-card contact-card" data-reveal>
           <p class="eyebrow">What to send</p>
-          <h2>Make the first message easy.</h2>
+          <h2>Helpful first message checklist.</h2>
           <ul class="plain-list">
             <li>What you want built, fixed, or improved.</li>
-            <li>Whether it is a site, app, dashboard, or automation job.</li>
-            <li>Your rough timeline and whether it is a first version or rebuild.</li>
-            <li>Any tools, pages, or systems the build must connect to.</li>
+            <li>Whether it is a site, bot, dashboard, or automation problem.</li>
+            <li>Your rough timeline and whether this is a first version or a rebuild.</li>
+            <li>Any existing tools, pages, or systems the build must connect to.</li>
           </ul>
         </article>
       </div>
@@ -232,28 +221,31 @@
     <section class="section-block">
       <div class="container spotlight">
         <article class="surface-card spotlight-copy" data-reveal>
-          <p class="eyebrow">Current apps</p>
-          <h2>The app lineup FLOW-NET is showing right now.</h2>
+          <p class="eyebrow">Live projects</p>
+          <h2>Try the current Railway-hosted project lineup.</h2>
           <p>
-            The first slot is the cold caller app. More apps can be added as
-            you send them through and we wire them into the public config.
+            FLOW-NET now advertises the current showcase apps directly: COLD CALLER,
+            COLD MAILER, WHATSAPP BOT WORKSPACE, CV EDITOR, and THE BAKERY.
           </p>
           <div class="footer-links">
-            <a href="live.html" data-config-href="PROJECT_ONE_URL" data-config-text="PROJECT_ONE_NAME">Cold Caller App</a>
-            <a href="contact.html#start-project-form" data-config-href="PROJECT_TWO_URL" data-config-text="PROJECT_TWO_NAME">Your second app</a>
-            <a href="contact.html#start-project-form" data-config-href="PROJECT_THREE_URL" data-config-text="PROJECT_THREE_NAME">Your third app</a>
-            <a href="contact.html#start-project-form" data-config-href="PROJECT_FOUR_URL" data-config-text="PROJECT_FOUR_NAME">Your fourth app</a>
-            <a href="contact.html#start-project-form" data-config-href="PROJECT_FIVE_URL" data-config-text="PROJECT_FIVE_NAME">Your fifth app</a>
+            <a href="https://coldcalle.up.railway.app/" data-config-href="PROJECT_ONE_URL" data-config-text="PROJECT_ONE_NAME">COLD CALLER</a>
+            <a href="https://cold-mailer.up.railway.app/" data-config-href="PROJECT_TWO_URL" data-config-text="PROJECT_TWO_NAME">COLD MAILER</a>
+            <a href="https://what-b-production.up.railway.app/" data-config-href="PROJECT_THREE_URL" data-config-text="PROJECT_THREE_NAME">WHATSAPP BOT WORKSPACE</a>
+            <a href="https://letscrypto25.github.io/Dynamic-CV./" data-config-href="PROJECT_FOUR_URL" data-config-text="PROJECT_FOUR_NAME">CV EDITOR</a>
+            <a href="https://letscrypto25.github.io/THE_BAKERY-/" data-config-href="PROJECT_FIVE_URL" data-config-text="PROJECT_FIVE_NAME">THE BAKERY</a>
+            <a href="https://flow-net-projects.github.io/PIZZA/">PIZZA</a>
           </div>
-          <p><small>Each live URL still comes from the public environment config.</small></p>
+          <p><small>Each live URL still comes from the public environment config for the primary featured apps.</small></p>
         </article>
 
         <article class="surface-card" data-reveal>
           <h3>What visitors can test</h3>
           <ul class="plain-list">
-            <li>Cold Caller App for lead queue, agent login, and calling flow.</li>
-            <li>More app slots will be added as each public URL is ready.</li>
-            <li>FLOW-NET uses the same public config for link and label updates.</li>
+            <li>COLD CALLER for cold calling operations, queue management, and agent tracking.</li>
+            <li>COLD MAILER for campaign outreach, tracking, and message flows.</li>
+            <li>WHATSAPP BOT WORKSPACE for chat automation and bot workflow testing.</li>
+            <li>CV EDITOR for building and editing a dynamic resume online.</li>
+            <li>THE BAKERY for bakery storefront presentation and product display.</li>
           </ul>
         </article>
       </div>
@@ -271,8 +263,8 @@
             </p>
           </div>
           <div class="cta-actions">
-            <a class="button button-primary light" href="mailto:flow.net.v2@gmail.com" data-config-mailto="CONTACT_EMAIL">Email now</a>
-            <a class="button button-secondary light" href="tel:+27659821883" data-config-tel="CONTACT_PHONE">Call now</a>
+            <a class="button button-primary light" href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL">Email now</a>
+            <a class="button button-secondary light" href="tel:+27650000000" data-config-tel="CONTACT_PHONE">Call now</a>
           </div>
         </div>
       </div>
@@ -304,9 +296,9 @@
         <div>
           <h3>Contact</h3>
           <div class="footer-links">
-            <a href="mailto:flow.net.v2@gmail.com" data-config-mailto="CONTACT_EMAIL" data-config-text="CONTACT_EMAIL">flow.net.v2@gmail.com</a>
-            <a href="tel:+27659821883" data-config-tel="CONTACT_PHONE" data-config-text="CONTACT_PHONE_LABEL">065 982 1883 (WhatsApp)</a>
-            <a href="live.html">View live apps</a>
+            <a href="mailto:hello@flow-net.dev" data-config-mailto="CONTACT_EMAIL" data-config-text="CONTACT_EMAIL">hello@flow-net.dev</a>
+            <a href="tel:+27650000000" data-config-tel="CONTACT_PHONE" data-config-text="CONTACT_PHONE_LABEL">+27 65 000 0000</a>
+            <a href="portfolio.html">Try live projects</a>
           </div>
         </div>
       </div>

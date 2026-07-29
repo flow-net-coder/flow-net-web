@@ -539,6 +539,25 @@ main {
   gap: 0.9rem;
 }
 
+.review-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.8rem 0 1rem;
+}
+
+.review-item {
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.review-headline {
+  margin-bottom: 0.35rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .review-form .form-field {
   margin-bottom: 0;
 }

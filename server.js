@@ -8,52 +8,131 @@ const port = Number.parseInt(process.env.PORT || '3000', 10);
 
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: 'FLOW-NET',
-  SITE_URL: '',
+  SITE_URL: 'https://flow-net-pro.up.railway.app',
   CONTACT_EMAIL: 'flow.net.v2@gmail.com',
   CONTACT_PHONE: '+27659821883',
   CONTACT_PHONE_LABEL: '065 982 1883 (WhatsApp)',
-  PROJECT_ONE_NAME: 'Cold Caller App',
-  PROJECT_ONE_TYPE: 'Cold caller dashboard',
+  PROJECT_ONE_NAME: 'COLD CALLER',
+  PROJECT_ONE_TYPE: 'Cold calling dashboard',
   PROJECT_ONE_STATUS: 'Live app',
-  PROJECT_ONE_SUMMARY: 'Agent login, lead queue, call outcomes, and stats for the DialFlow Pro cold-calling workflow.',
-  PROJECT_ONE_META_LABEL: 'Focus',
-  PROJECT_ONE_META_VALUE: 'Lead calling, agent stats, queue flow',
-  PROJECT_ONE_CTA_LABEL: 'Open app',
+  PROJECT_ONE_SUMMARY: 'Agent login, lead queue, call outcomes, and stats for the DialFlow Pro workflow. Login: ADMIN 2026 / AGENT tester.',
+  PROJECT_ONE_META_LABEL: 'Access',
+  PROJECT_ONE_META_VALUE: 'Admin 2026, Agent tester',
+  PROJECT_ONE_CTA_LABEL: 'Open COLD CALLER',
   PROJECT_ONE_URL: 'https://coldcalle.up.railway.app/',
   PROJECT_ONE_THUMBNAIL_URL: 'assets/cold-caller-preview.svg',
-  PROJECT_TWO_NAME: 'Your second app',
-  PROJECT_TWO_TYPE: 'Live app slot',
-  PROJECT_TWO_STATUS: 'Ready to connect',
-  PROJECT_TWO_SUMMARY: 'Use this slot for another public app, a client showcase, or a product demo.',
-  PROJECT_TWO_META_LABEL: 'Status',
-  PROJECT_TWO_META_VALUE: 'Waiting for your URL',
-  PROJECT_TWO_CTA_LABEL: 'Add your app',
-  PROJECT_TWO_URL: '',
-  PROJECT_THREE_NAME: 'Your third app',
-  PROJECT_THREE_TYPE: 'Live app slot',
-  PROJECT_THREE_STATUS: 'Ready to connect',
-  PROJECT_THREE_SUMMARY: 'Keep the public list tidy while you add the apps you want visitors to open.',
-  PROJECT_THREE_META_LABEL: 'Status',
-  PROJECT_THREE_META_VALUE: 'Waiting for your URL',
-  PROJECT_THREE_CTA_LABEL: 'Add your app',
-  PROJECT_THREE_URL: '',
-  PROJECT_FOUR_NAME: 'Your fourth app',
-  PROJECT_FOUR_TYPE: 'Live app slot',
-  PROJECT_FOUR_STATUS: 'Ready to connect',
-  PROJECT_FOUR_SUMMARY: 'Another app slot for a live product, workflow tool, or customer-facing portal.',
-  PROJECT_FOUR_META_LABEL: 'Status',
-  PROJECT_FOUR_META_VALUE: 'Waiting for your URL',
-  PROJECT_FOUR_CTA_LABEL: 'Add your app',
-  PROJECT_FOUR_URL: '',
-  PROJECT_FIVE_NAME: 'Your fifth app',
-  PROJECT_FIVE_TYPE: 'Live app slot',
-  PROJECT_FIVE_STATUS: 'Ready to connect',
-  PROJECT_FIVE_SUMMARY: 'Use this final slot for your strongest live app or the next one you want to launch.',
-  PROJECT_FIVE_META_LABEL: 'Status',
-  PROJECT_FIVE_META_VALUE: 'Waiting for your URL',
-  PROJECT_FIVE_CTA_LABEL: 'Add your app',
-  PROJECT_FIVE_URL: '',
+  PROJECT_TWO_NAME: 'COLD MAILER',
+  PROJECT_TWO_TYPE: 'Email outreach app',
+  PROJECT_TWO_STATUS: 'Live app',
+  PROJECT_TWO_SUMMARY: 'Cold mail campaign manager with templated outreach, tracking, and queue control.',
+  PROJECT_TWO_META_LABEL: 'URL',
+  PROJECT_TWO_META_VALUE: 'https://cold-mailer.up.railway.app',
+  PROJECT_TWO_CTA_LABEL: 'Open COLD MAILER',
+  PROJECT_TWO_URL: 'https://cold-mailer.up.railway.app/',
+  PROJECT_TWO_THUMBNAIL_URL: 'assets/cold-mailer-preview.svg',
+  PROJECT_THREE_NAME: 'WHATSAPP BOT WORKSPACE',
+  PROJECT_THREE_TYPE: 'WhatsApp bot workspace',
+  PROJECT_THREE_STATUS: 'Live app',
+  PROJECT_THREE_SUMMARY: 'Workspace for WhatsApp bot automation and workflow testing. Password: 2026.',
+  PROJECT_THREE_META_LABEL: 'Password',
+  PROJECT_THREE_META_VALUE: '2026',
+  PROJECT_THREE_CTA_LABEL: 'Open WhatsApp workspace',
+  PROJECT_THREE_URL: 'https://what-b-production.up.railway.app/',
+  PROJECT_THREE_THUMBNAIL_URL: 'assets/whatsapp-bot-preview.svg',
+  PROJECT_FOUR_NAME: 'CV EDITOR',
+  PROJECT_FOUR_TYPE: 'Resume editor',
+  PROJECT_FOUR_STATUS: 'Live app',
+  PROJECT_FOUR_SUMMARY: 'Dynamic CV editor for creating, editing and publishing professional curriculum vitae.',
+  PROJECT_FOUR_META_LABEL: 'Hosted',
+  PROJECT_FOUR_META_VALUE: 'GitHub Pages',
+  PROJECT_FOUR_CTA_LABEL: 'Open CV EDITOR',
+  PROJECT_FOUR_URL: 'https://letscrypto25.github.io/Dynamic-CV./',
+  PROJECT_FOUR_THUMBNAIL_URL: 'assets/cv-editor-preview.svg',
+  PROJECT_FIVE_NAME: 'THE BAKERY',
+  PROJECT_FIVE_TYPE: 'Bakery showcase',
+  PROJECT_FIVE_STATUS: 'Live demo',
+  PROJECT_FIVE_SUMMARY: 'Bakery website demo with a menu-first layout, warm brand storytelling, and product presentation.',
+  PROJECT_FIVE_META_LABEL: 'Hosted',
+  PROJECT_FIVE_META_VALUE: 'GitHub Pages',
+  PROJECT_FIVE_CTA_LABEL: 'Open THE BAKERY',
+  PROJECT_FIVE_URL: 'https://letscrypto25.github.io/THE_BAKERY-/',
+  PROJECT_FIVE_THUMBNAIL_URL: 'assets/bakery-preview.svg',
 };
+
+const curatedAppSeedData = [
+  {
+    appName: 'Cold Mailer',
+    appUrl: 'https://cold-mailer.up.railway.app/',
+    thumbnailUrl: '/assets/cold-mailer-preview.svg',
+    description: 'Cold-mailer outreach workspace for multi-step campaigns. Use the live portal to launch and track outreach efforts.',
+    category: 'Email outreach',
+    loginDetails: 'Portal access is available directly through the live app.',
+    reviews: [
+      { reviewer: 'Mina', rating: 5, comment: 'Fast and very usable for outreach runs.' },
+      { reviewer: 'Lerato', rating: 4, comment: 'Clean interface and strong workflow layout.' },
+    ],
+  },
+  {
+    appName: 'Cold Caller',
+    appUrl: 'https://coldcalle.up.railway.app/',
+    thumbnailUrl: '/assets/cold-caller-preview.svg',
+    description: 'Lead queue and outbound calling workflow with admin and agent roles. Admin: 2026 · Agent: tester.',
+    category: 'Call centre ops',
+    loginDetails: 'Admin login: 2026 · Agent login: tester',
+    reviews: [
+      { reviewer: 'Sizwe', rating: 5, comment: 'Excellent for call centre flow and agent tracking.' },
+      { reviewer: 'Asha', rating: 4, comment: 'Simple controls that make daily work feel easier.' },
+    ],
+  },
+  {
+    appName: 'WhatsApp Bot Workspace',
+    appUrl: 'https://what-b-production.up.railway.app/',
+    thumbnailUrl: '/assets/whatsapp-bot-preview.svg',
+    description: 'Automation workspace for WhatsApp conversations, bot flows, and customer support actions. Password: 2026.',
+    category: 'Messaging automation',
+    loginDetails: 'Password: 2026',
+    reviews: [
+      { reviewer: 'Jade', rating: 5, comment: 'Great for handling fast customer conversations.' },
+      { reviewer: 'Nico', rating: 4, comment: 'Reliable and easy to follow for support flows.' },
+    ],
+  },
+  {
+    appName: 'CV Editor',
+    appUrl: 'https://letscrypto25.github.io/Dynamic-CV./',
+    thumbnailUrl: '/assets/cv-editor-preview.svg',
+    description: 'Interactive CV editor for creating a polished, dynamic resume through a simple web interface.',
+    category: 'Portfolio tools',
+    loginDetails: 'No login required for the public editor.',
+    reviews: [
+      { reviewer: 'Kamo', rating: 5, comment: 'Super smooth for putting together a strong resume.' },
+      { reviewer: 'Tumi', rating: 4, comment: 'The layout feels polished and modern.' },
+    ],
+  },
+  {
+    appName: 'Bakery',
+    appUrl: 'https://letscrypto25.github.io/THE_BAKERY-/',
+    thumbnailUrl: '/assets/bakery-preview.svg',
+    description: 'A clean bakery website demo with product presentation and a friendly storefront experience.',
+    category: 'Local business',
+    loginDetails: 'No login required for the public storefront.',
+    reviews: [
+      { reviewer: 'Bongani', rating: 4, comment: 'Warm brand feel and nice presentation.' },
+      { reviewer: 'Lihle', rating: 5, comment: 'Very inviting and easy to browse.' },
+    ],
+  },
+  {
+    appName: 'Pizza',
+    appUrl: 'https://flow-net-projects.github.io/PIZZA/',
+    thumbnailUrl: '/assets/pizza-preview.svg',
+    description: 'Pizza ordering demo with a simple digital menu and a polished front-end experience.',
+    category: 'Food ordering',
+    loginDetails: 'No login required for the public site.',
+    reviews: [
+      { reviewer: 'Rene', rating: 5, comment: 'The menu experience feels fun and approachable.' },
+      { reviewer: 'Mpho', rating: 4, comment: 'Nice visual flow for a food ordering page.' },
+    ],
+  },
+];
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -166,6 +245,46 @@ function ensureDataRoot() {
   if (!fs.existsSync(dataRoot)) {
     fs.mkdirSync(dataRoot, { recursive: true });
   }
+}
+
+function seedCuratedApps() {
+  ensurePublishedRoot();
+
+  curatedAppSeedData.forEach((seed) => {
+    const publishId = safeName(seed.appName);
+    const destination = path.join(publishedRoot, publishId);
+    fs.mkdirSync(destination, { recursive: true });
+
+    const metaPath = path.join(destination, 'meta.json');
+    let existingMeta = {};
+
+    if (fs.existsSync(metaPath)) {
+      try {
+        existingMeta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+      } catch {
+        existingMeta = {};
+      }
+    }
+
+    const publishMeta = {
+      appName: existingMeta.appName || seed.appName,
+      publishId,
+      appUrl: new URL(seed.appUrl).href,
+      thumbnailUrl: seed.thumbnailUrl || '',
+      description: existingMeta.description || seed.description,
+      category: existingMeta.category || seed.category || 'Live app',
+      loginDetails: existingMeta.loginDetails || seed.loginDetails || '',
+      createdAt: existingMeta.createdAt || new Date().toISOString(),
+      liveUrl: new URL(seed.appUrl).href,
+      reviews: Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0
+        ? existingMeta.reviews
+        : (Array.isArray(seed.reviews) ? seed.reviews : []),
+      averageRating: existingMeta.averageRating || computeReviewStats(Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0 ? existingMeta.reviews : (Array.isArray(seed.reviews) ? seed.reviews : [])).averageRating,
+      reviewCount: existingMeta.reviewCount || (Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0 ? existingMeta.reviews.length : (Array.isArray(seed.reviews) ? seed.reviews.length : 0)),
+    };
+
+    fs.writeFileSync(metaPath, JSON.stringify(publishMeta, null, 2));
+  });
 }
 
 function safeName(value) {
@@ -362,6 +481,8 @@ function resolveStaticFile(requestPath) {
   return absolutePath;
 }
 
+seedCuratedApps();
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const requestPath = decodeURIComponent(url.pathname);
@@ -532,6 +653,8 @@ const server = http.createServer(async (req, res) => {
         liveUrl: meta?.liveUrl || `/live/${item.name}/`,
         appUrl: meta?.appUrl || meta?.liveUrl || `/live/${item.name}/`,
         thumbnailUrl: meta?.thumbnailUrl || '',
+        category: meta?.category || '',
+        loginDetails: meta?.loginDetails || '',
         reviewCount,
         averageRating,
       });

@@ -25,3 +25,6 @@
 - [x] Re-run syntax validation after the final wording pass.
 - [x] Add the Avg Joe fit positioning for low-cost individual apps.
 - [x] Update the homepage and pricing copy for small businesses, larger companies, co-ops, and normal people.
+- [x] Run a wording pass to remove self-referential homepage copy.
+- [x] Simplify the contact page into a clearer start path instead of repeated info blocks.
+- [x] Tighten the contact call-to-action so users reach the form faster.

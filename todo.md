@@ -23,3 +23,5 @@
 - [x] Keep the links page as a simple list for tools you add later.
 - [x] Clean the shared app card labels from publish/published wording.
 - [x] Re-run syntax validation after the final wording pass.
+- [x] Add the Avg Joe fit positioning for low-cost individual apps.
+- [x] Update the homepage and pricing copy for small businesses, larger companies, co-ops, and normal people.

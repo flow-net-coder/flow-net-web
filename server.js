@@ -8,55 +8,51 @@ const port = Number.parseInt(process.env.PORT || '3000', 10);
 
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: 'FLOW-NET',
-  SITE_URL: 'https://flow-net-pro.up.railway.app',
+  SITE_URL: '',
   CONTACT_EMAIL: 'flow.net.v2@gmail.com',
   CONTACT_PHONE: '+27659821883',
   CONTACT_PHONE_LABEL: '065 982 1883 (WhatsApp)',
-  PROJECT_ONE_NAME: 'COLD CALLER',
-  PROJECT_ONE_TYPE: 'Cold calling dashboard',
+  PROJECT_ONE_NAME: 'Cold Caller App',
+  PROJECT_ONE_TYPE: 'Cold caller dashboard',
   PROJECT_ONE_STATUS: 'Live app',
-  PROJECT_ONE_SUMMARY: 'Agent login, lead queue, call outcomes, and stats for the DialFlow Pro workflow. Login: ADMIN 2026 / AGENT tester.',
-  PROJECT_ONE_META_LABEL: 'Access',
-  PROJECT_ONE_META_VALUE: 'Admin 2026, Agent tester',
-  PROJECT_ONE_CTA_LABEL: 'Open COLD CALLER',
+  PROJECT_ONE_SUMMARY: 'Agent login, lead queue, call outcomes, and stats for the DialFlow Pro cold-calling workflow.',
+  PROJECT_ONE_META_LABEL: 'Focus',
+  PROJECT_ONE_META_VALUE: 'Lead calling, agent stats, queue flow',
+  PROJECT_ONE_CTA_LABEL: 'Open app',
   PROJECT_ONE_URL: 'https://coldcalle.up.railway.app/',
   PROJECT_ONE_THUMBNAIL_URL: 'assets/cold-caller-preview.svg',
-  PROJECT_TWO_NAME: 'COLD MAILER',
-  PROJECT_TWO_TYPE: 'Email outreach app',
-  PROJECT_TWO_STATUS: 'Live app',
-  PROJECT_TWO_SUMMARY: 'Cold mail campaign manager with templated outreach, tracking, and queue control.',
-  PROJECT_TWO_META_LABEL: 'URL',
-  PROJECT_TWO_META_VALUE: 'https://cold-mailer.up.railway.app',
-  PROJECT_TWO_CTA_LABEL: 'Open COLD MAILER',
-  PROJECT_TWO_URL: 'https://cold-mailer.up.railway.app/',
-  PROJECT_TWO_THUMBNAIL_URL: 'assets/cold-mailer-preview.svg',
-  PROJECT_THREE_NAME: 'WHATSAPP BOT WORKSPACE',
-  PROJECT_THREE_TYPE: 'WhatsApp bot workspace',
-  PROJECT_THREE_STATUS: 'Live app',
-  PROJECT_THREE_SUMMARY: 'Workspace for WhatsApp bot automation and workflow testing. Password: 2026.',
-  PROJECT_THREE_META_LABEL: 'Password',
-  PROJECT_THREE_META_VALUE: '2026',
-  PROJECT_THREE_CTA_LABEL: 'Open WhatsApp workspace',
-  PROJECT_THREE_URL: 'https://what-b-production.up.railway.app/',
-  PROJECT_THREE_THUMBNAIL_URL: 'assets/whatsapp-bot-preview.svg',
-  PROJECT_FOUR_NAME: 'CV EDITOR',
-  PROJECT_FOUR_TYPE: 'Resume editor',
-  PROJECT_FOUR_STATUS: 'Live app',
-  PROJECT_FOUR_SUMMARY: 'Dynamic CV editor for creating, editing and publishing professional curriculum vitae.',
-  PROJECT_FOUR_META_LABEL: 'Hosted',
-  PROJECT_FOUR_META_VALUE: 'GitHub Pages',
-  PROJECT_FOUR_CTA_LABEL: 'Open CV EDITOR',
-  PROJECT_FOUR_URL: 'https://letscrypto25.github.io/Dynamic-CV./',
-  PROJECT_FOUR_THUMBNAIL_URL: 'assets/cv-editor-preview.svg',
-  PROJECT_FIVE_NAME: 'THE BAKERY',
-  PROJECT_FIVE_TYPE: 'Bakery showcase',
-  PROJECT_FIVE_STATUS: 'Live demo',
-  PROJECT_FIVE_SUMMARY: 'Bakery website demo with a menu-first layout, warm brand storytelling, and product presentation.',
-  PROJECT_FIVE_META_LABEL: 'Hosted',
-  PROJECT_FIVE_META_VALUE: 'GitHub Pages',
-  PROJECT_FIVE_CTA_LABEL: 'Open THE BAKERY',
-  PROJECT_FIVE_URL: 'https://letscrypto25.github.io/THE_BAKERY-/',
-  PROJECT_FIVE_THUMBNAIL_URL: 'assets/bakery-preview.svg',
+  PROJECT_TWO_NAME: 'Your second app',
+  PROJECT_TWO_TYPE: 'Live app slot',
+  PROJECT_TWO_STATUS: 'Ready to connect',
+  PROJECT_TWO_SUMMARY: 'Use this slot for another public app, a client showcase, or a product demo.',
+  PROJECT_TWO_META_LABEL: 'Status',
+  PROJECT_TWO_META_VALUE: 'Waiting for your URL',
+  PROJECT_TWO_CTA_LABEL: 'Add your app',
+  PROJECT_TWO_URL: '',
+  PROJECT_THREE_NAME: 'Your third app',
+  PROJECT_THREE_TYPE: 'Live app slot',
+  PROJECT_THREE_STATUS: 'Ready to connect',
+  PROJECT_THREE_SUMMARY: 'Keep the public list tidy while you add the apps you want visitors to open.',
+  PROJECT_THREE_META_LABEL: 'Status',
+  PROJECT_THREE_META_VALUE: 'Waiting for your URL',
+  PROJECT_THREE_CTA_LABEL: 'Add your app',
+  PROJECT_THREE_URL: '',
+  PROJECT_FOUR_NAME: 'Your fourth app',
+  PROJECT_FOUR_TYPE: 'Live app slot',
+  PROJECT_FOUR_STATUS: 'Ready to connect',
+  PROJECT_FOUR_SUMMARY: 'Another app slot for a live product, workflow tool, or customer-facing portal.',
+  PROJECT_FOUR_META_LABEL: 'Status',
+  PROJECT_FOUR_META_VALUE: 'Waiting for your URL',
+  PROJECT_FOUR_CTA_LABEL: 'Add your app',
+  PROJECT_FOUR_URL: '',
+  PROJECT_FIVE_NAME: 'Your fifth app',
+  PROJECT_FIVE_TYPE: 'Live app slot',
+  PROJECT_FIVE_STATUS: 'Ready to connect',
+  PROJECT_FIVE_SUMMARY: 'Use this final slot for your strongest live app or the next one you want to launch.',
+  PROJECT_FIVE_META_LABEL: 'Status',
+  PROJECT_FIVE_META_VALUE: 'Waiting for your URL',
+  PROJECT_FIVE_CTA_LABEL: 'Add your app',
+  PROJECT_FIVE_URL: '',
 };
 
 const curatedAppSeedData = [
@@ -490,6 +486,33 @@ const server = http.createServer(async (req, res) => {
   if (requestPath === '/api/health' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ ok: true, service: 'FLOW-NET', status: 'ready' }));
+    return;
+  }
+
+  if (requestPath === '/submit-project' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        data.timestamp = new Date().toISOString();
+        const submissionsFile = path.join(__dirname, 'submissions.json');
+        let submissions = [];
+        if (fs.existsSync(submissionsFile)) {
+          const fileData = fs.readFileSync(submissionsFile, 'utf8');
+          if (fileData) submissions = JSON.parse(fileData);
+        }
+        submissions.push(data);
+        fs.writeFileSync(submissionsFile, JSON.stringify(submissions, null, 2));
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true, message: 'Thanks. Your message was sent.' }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Invalid submission data.' }));
+      }
+    });
     return;
   }
 

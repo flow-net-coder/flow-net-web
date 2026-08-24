@@ -1,66 +1,813 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>FLOW-NET Admin — Published Apps</title>
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;padding:20px}
-    table{border-collapse:collapse;width:100%}
-    th,td{border:1px solid #ddd;padding:8px}
-    th{background:#f4f4f4}
-    pre{background:#111;color:#0f0;padding:10px;overflow:auto}
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLOW-NET Admin | Client Pipeline & App Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-</head>
-<body>
-  <h1>Published Apps</h1>
-  <div id="apps">Loading…</div>
-  <script>
-    let ADMIN_PIN = null;
-    async function login(pin) {
-      const r = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin }) });
-      return r.json();
+  <style>
+    .admin-container {
+      width: min(calc(100% - 2rem), 1280px);
+      margin: 0 auto;
+      padding: 2rem 0 5rem;
     }
 
-    async function load() {
-      if (!ADMIN_PIN) {
-        const p = prompt('Enter admin PIN:');
-        if (!p) { document.getElementById('apps').textContent = 'Admin PIN required.'; return; }
-        const res = await login(p);
-        if (!res.ok) { alert('Invalid PIN'); return load(); }
-        ADMIN_PIN = p;
+    .admin-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2.2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admin-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      background: rgba(255, 59, 48, 0.16);
+      border: 1px solid rgba(255, 59, 48, 0.35);
+      color: var(--accent);
+    }
+
+    .admin-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      background: rgba(20, 13, 13, 0.85);
+      padding: 0.5rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .admin-tab-btn {
+      flex: 1;
+      min-width: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.9rem 1.4rem;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .admin-tab-btn:hover {
+      color: var(--heading);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .admin-tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(255, 59, 48, 0.25), rgba(255, 149, 0, 0.25));
+      border-color: rgba(255, 94, 0, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .tab-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 6px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--heading);
+    }
+
+    .admin-tab-btn.active .tab-count {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tab-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.4rem;
+    }
+
+    .pipeline-card {
+      background: linear-gradient(180deg, rgba(28, 17, 17, 0.94), rgba(18, 11, 11, 0.9));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.2rem;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .pipeline-card:hover {
+      border-color: rgba(255, 94, 0, 0.35);
+    }
+
+    .card-meta-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .source-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 149, 0, 0.15);
+      color: var(--accent-2);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pipeline-card h3 {
+      font-size: 1.25rem;
+      margin: 0.3rem 0 0.2rem;
+      color: var(--heading);
+    }
+
+    .client-company {
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .client-contacts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      font-size: 0.88rem;
+      margin: 0.4rem 0 0.8rem;
+    }
+
+    .client-contacts a {
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(255, 149, 0, 0.4);
+    }
+
+    .card-detail-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 0.9rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .card-detail-box strong {
+      color: var(--heading);
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .action-btn {
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0;
+      transition: 160ms ease;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(255, 59, 48, 0.25);
+    }
+
+    .btn-next:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-delete {
+      background: rgba(255, 59, 48, 0.1);
+      border: 1px solid rgba(255, 59, 48, 0.25);
+      color: #ff7e7e;
+    }
+
+    .btn-delete:hover {
+      background: rgba(255, 59, 48, 0.25);
+      color: #fff;
+    }
+
+    .btn-save {
+      background: rgba(255, 149, 0, 0.18);
+      border: 1px solid rgba(255, 149, 0, 0.35);
+      color: var(--heading);
+    }
+
+    .btn-save:hover {
+      background: rgba(255, 149, 0, 0.3);
+    }
+
+    .btn-link {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .edit-input, .edit-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 94, 0, 0.25);
+      color: var(--text);
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .edit-input:focus, .edit-textarea:focus {
+      outline: 0;
+      border-color: var(--accent-2);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    .modal-card {
+      background: #180f0f;
+      border: 1px solid rgba(255, 94, 0, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 580px;
+      width: 100%;
+      box-shadow: var(--shadow);
+    }
+
+    .login-box {
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .empty-tab-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      background: rgba(20, 13, 13, 0.6);
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--border);
+    }
+
+    .empty-tab-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body data-page="admin">
+  <!-- Auth Overlay -->
+  <div id="auth-modal" class="modal-backdrop">
+    <div class="modal-card login-box">
+      <span class="brand-mark" style="margin: 0 auto 1.2rem;"><img src="assets/logo.png" alt="FLOW-NET" /></span>
+      <h2>FLOW-NET Admin</h2>
+      <p style="margin-bottom: 1.5rem;">Enter the administrative PIN to access client pipeline & apps.</p>
+      <form id="pin-form">
+        <input
+          type="password"
+          id="pin-input"
+          class="edit-input"
+          placeholder="Admin PIN"
+          style="font-size: 1.2rem; text-align: center; letter-spacing: 0.3em; margin-bottom: 1rem;"
+          required
+          autofocus
+        />
+        <button type="submit" class="button button-primary" style="width: 100%;">Unlock Dashboard</button>
+        <p id="pin-error" style="color: #ff7e7e; margin-top: 0.8rem;" hidden>Invalid PIN. Please try again.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manual Entry / Walk-In Modal -->
+  <div id="entry-modal" class="modal-backdrop" hidden>
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem;">
+        <h2>Add Walk-in / Manual Lead</h2>
+        <button type="button" class="action-btn btn-delete" onclick="closeEntryModal()">✕</button>
+      </div>
+      <form id="manual-lead-form">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+          <input class="edit-input" name="name" placeholder="Client Name *" required />
+          <input class="edit-input" name="company" placeholder="Company / Business" />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+          <input class="edit-input" name="email" type="email" placeholder="Email address" />
+          <input class="edit-input" name="phone" placeholder="Phone / WhatsApp" />
+        </div>
+        <textarea class="edit-textarea" name="project_idea" rows="3" placeholder="Project Idea / App Needed *" required></textarea>
+        <textarea class="edit-textarea" name="project_goal" rows="2" placeholder="Main Problem to Solve / Goal"></textarea>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+          <input class="edit-input" name="timeline" placeholder="Timeline (e.g. 2 weeks)" />
+          <select class="edit-input" name="source">
+            <option value="walk_in">Walk-in Client</option>
+            <option value="phone">Phone Call</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="website">Website Form</option>
+          </select>
+        </div>
+        <textarea class="edit-textarea" name="additional_details" rows="2" placeholder="Any initial notes or scope requirements"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1rem;">
+          <button type="button" class="action-btn btn-delete" onclick="closeEntryModal()">Cancel</button>
+          <button type="submit" class="action-btn btn-next" style="padding: 0.75rem 1.6rem;">Save to Demos / Ideas</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-container">
+    <header class="admin-header-bar">
+      <div class="admin-title-wrap">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"><img src="assets/logo.png" alt="FLOW-NET" /></span>
+          <span class="brand-text">
+            <strong>FLOW-NET</strong>
+            <small>Operations Dashboard</small>
+          </span>
+        </a>
+        <span class="admin-badge">Admin Pipeline</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.8rem;">
+        <a href="index.html" class="action-btn btn-link">← Website</a>
+        <button type="button" class="action-btn btn-delete" onclick="logout()">Log out</button>
+      </div>
+    </header>
+
+    <!-- 3 Navigation Tabs -->
+    <nav class="admin-tabs">
+      <button type="button" class="admin-tab-btn active" id="tab-btn-demos" onclick="switchTab('demos_ideas')">
+        <span>💡 Demos / Ideas</span>
+        <span class="tab-count" id="count-demos">0</span>
+      </button>
+      <button type="button" class="admin-tab-btn" id="tab-btn-pricing" onclick="switchTab('pricing_links')">
+        <span>💼 Pricing & Links</span>
+        <span class="tab-count" id="count-pricing">0</span>
+      </button>
+      <button type="button" class="admin-tab-btn" id="tab-btn-apps" onclick="switchTab('apps')">
+        <span>🚀 Live Apps</span>
+        <span class="tab-count" id="count-apps">0</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: Demos / Ideas -->
+    <section id="view-demos_ideas" class="tab-view">
+      <div class="tab-header-row">
+        <div>
+          <h2>Stage 1: Demos & Initial Inquiries</h2>
+          <p style="margin: 0;">Inquiries submitted from the website or entered manually for walk-ins.</p>
+        </div>
+        <button type="button" class="action-btn btn-next" onclick="openEntryModal()">+ Add Walk-In / Manual Lead</button>
+      </div>
+      <div class="pipeline-grid" id="grid-demos_ideas"></div>
+    </section>
+
+    <!-- Tab 2: Pricing & Links -->
+    <section id="view-pricing_links" class="tab-view" hidden>
+      <div class="tab-header-row">
+        <div>
+          <h2>Stage 2: Pricing, Proposals & Demo Links</h2>
+          <p style="margin: 0;">Draft quotes, add demo preview links, scope details, and proposal notes.</p>
+        </div>
+      </div>
+      <div class="pipeline-grid" id="grid-pricing_links"></div>
+    </section>
+
+    <!-- Tab 3: Apps -->
+    <section id="view-apps" class="tab-view" hidden>
+      <div class="tab-header-row">
+        <div>
+          <h2>Stage 3: Finalized & Running Apps</h2>
+          <p style="margin: 0;">Active deployed client systems, live URLs, and monthly maintenance pricing.</p>
+        </div>
+      </div>
+      <div class="pipeline-grid" id="grid-apps"></div>
+    </section>
+  </div>
+
+  <script>
+    let activeTab = 'demos_ideas';
+    let pipelineData = [];
+    let adminToken = sessionStorage.getItem('fn_admin_pin') || '';
+
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function checkAuth() {
+      if (!adminToken) {
+        document.getElementById('auth-modal').hidden = false;
+        return;
       }
-      const r = await fetch('/api/admin/apps', { headers: { 'x-admin-pin': ADMIN_PIN } });
-      const j = await r.json();
-      const target = document.getElementById('apps');
-      if(!j.ok) { target.textContent = 'Error: '+(j.error||'unknown'); return; }
-      if(!j.apps.length) { target.textContent = 'No published apps.'; return; }
-      const rows = j.apps.map(a=>`<tr>
-        <td>${a.appName}<br/><small>${a.publishId}</small></td>
-        <td>${a.description}</td>
-        <td>${a.container ? 'Yes' : 'No'}</td>
-        <td>${a.lastAccess||a.createdAt}</td>
-        <td>
-          <button onclick="stop('${a.publishId}')">Stop</button>
-          <button onclick="logs('${a.publishId}')">Logs</button>
-        </td>
-      </tr>`).join('');
-      target.innerHTML = `<table><thead><tr><th>App</th><th>Description</th><th>Container</th><th>Last Access</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+      document.getElementById('auth-modal').hidden = true;
+      loadPipeline();
     }
-    async function stop(publishId){
-      if(!confirm('Stop container for '+publishId+'?')) return;
-      const r = await fetch('/api/admin/stop',{method:'POST',headers:{'Content-Type':'application/json','x-admin-pin':ADMIN_PIN},body:JSON.stringify({publishId})});
-      const j = await r.json(); if(!j.ok) alert('Error:'+j.error); else { alert('Stopped'); load(); }
+
+    document.getElementById('pin-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pin = document.getElementById('pin-input').value.trim();
+      const errEl = document.getElementById('pin-error');
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          adminToken = pin;
+          sessionStorage.setItem('fn_admin_pin', pin);
+          document.getElementById('auth-modal').hidden = true;
+          errEl.hidden = true;
+          loadPipeline();
+        } else {
+          errEl.hidden = false;
+        }
+      } catch (err) {
+        errEl.hidden = false;
+      }
+    });
+
+    function logout() {
+      sessionStorage.removeItem('fn_admin_pin');
+      adminToken = '';
+      document.getElementById('auth-modal').hidden = false;
+      document.getElementById('pin-input').value = '';
     }
-    async function logs(publishId){
-      const r = await fetch('/api/admin/logs?publishId='+encodeURIComponent(publishId), { headers: { 'x-admin-pin': ADMIN_PIN } });
-      const j = await r.json();
-      if(!j.ok) { alert('Error:'+j.error); return; }
-      const w = window.open('','logs','width=800,height=600');
-      w.document.body.innerHTML = '<h2>Logs for '+publishId+'</h2><pre>'+escapeHtml(j.logs)+'</pre>';
+
+    function switchTab(tabName) {
+      activeTab = tabName;
+      ['demos_ideas', 'pricing_links', 'apps'].forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t === 'demos_ideas' ? 'demos' : t === 'pricing_links' ? 'pricing' : 'apps'}`);
+        const view = document.getElementById(`view-${t}`);
+        if (btn) btn.classList.toggle('active', t === tabName);
+        if (view) view.hidden = (t !== tabName);
+      });
+      renderPipeline();
     }
-    function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    load();
+
+    async function loadPipeline() {
+      try {
+        const res = await fetch('/api/admin/pipeline', {
+          headers: { 'x-admin-pin': adminToken }
+        });
+        if (res.status === 401) {
+          logout();
+          return;
+        }
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.items)) {
+          pipelineData = data.items;
+          updateCounts();
+          renderPipeline();
+        }
+      } catch (e) {
+        console.error('Failed to load pipeline:', e);
+      }
+    }
+
+    function updateCounts() {
+      const demos = pipelineData.filter(i => (i.stage || 'demos_ideas') === 'demos_ideas').length;
+      const pricing = pipelineData.filter(i => i.stage === 'pricing_links').length;
+      const apps = pipelineData.filter(i => i.stage === 'apps').length;
+
+      document.getElementById('count-demos').textContent = demos;
+      document.getElementById('count-pricing').textContent = pricing;
+      document.getElementById('count-apps').textContent = apps;
+    }
+
+    function renderPipeline() {
+      updateCounts();
+      const targetGrid = document.getElementById(`grid-${activeTab}`);
+      if (!targetGrid) return;
+
+      const items = pipelineData.filter(i => (i.stage || 'demos_ideas') === activeTab);
+
+      if (items.length === 0) {
+        targetGrid.innerHTML = `
+          <div class="empty-tab-state" style="grid-column: 1 / -1;">
+            <h3>No entries in this stage</h3>
+            <p>Entries will appear here as leads move through the pipeline.</p>
+          </div>
+        `;
+        return;
+      }
+
+      targetGrid.innerHTML = items.map(item => {
+        if (activeTab === 'demos_ideas') return renderDemosCard(item);
+        if (activeTab === 'pricing_links') return renderPricingCard(item);
+        if (activeTab === 'apps') return renderAppsCard(item);
+      }).join('');
+    }
+
+    function renderDemosCard(item) {
+      const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '';
+      return `
+        <article class="pipeline-card" id="card-${item.id}">
+          <div>
+            <div class="card-meta-top">
+              <span class="source-tag">${escapeHtml(item.source || 'Website')}</span>
+              <span style="color: var(--muted);">${dateStr}</span>
+            </div>
+            <h3>${escapeHtml(item.name || 'Anonymous client')}</h3>
+            ${item.company ? `<div class="client-company">${escapeHtml(item.company)}</div>` : ''}
+
+            <div class="client-contacts">
+              ${item.email ? `<span>✉ <a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a></span>` : ''}
+              ${item.phone ? `<span>📞 <a href="tel:${escapeHtml(item.phone)}">${escapeHtml(item.phone)}</a></span>` : ''}
+            </div>
+
+            <div class="card-detail-box" style="margin-bottom: 0.6rem;">
+              <strong>Project Idea</strong>
+              <p style="margin: 0;">${escapeHtml(item.project_idea || 'No idea details')}</p>
+            </div>
+
+            ${item.project_goal ? `
+              <div class="card-detail-box" style="margin-bottom: 0.6rem;">
+                <strong>Problem to Solve</strong>
+                <p style="margin: 0;">${escapeHtml(item.project_goal)}</p>
+              </div>
+            ` : ''}
+
+            ${item.timeline ? `<p style="font-size: 0.85rem; margin: 0.4rem 0;"><strong>Timeline:</strong> ${escapeHtml(item.timeline)}</p>` : ''}
+            ${item.additional_details ? `<p style="font-size: 0.85rem; color: var(--muted); margin: 0.4rem 0;"><strong>Notes:</strong> ${escapeHtml(item.additional_details)}</p>` : ''}
+          </div>
+
+          <div class="card-actions">
+            <button class="action-btn btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
+            <button class="action-btn btn-next" onclick="moveToPricing('${item.id}')">Next Step: Pricing & Links →</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderPricingCard(item) {
+      return `
+        <article class="pipeline-card" id="card-${item.id}">
+          <div>
+            <div class="card-meta-top">
+              <span class="source-tag" style="background: rgba(255, 59, 48, 0.18); color: var(--accent);">Proposal Stage</span>
+              <span style="color: var(--muted);">${escapeHtml(item.name)}</span>
+            </div>
+            <h3>${escapeHtml(item.company || item.name)}</h3>
+            <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 0.8rem;">${escapeHtml(item.project_idea || '')}</p>
+
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading);">Quote / Price</label>
+            <input class="edit-input" id="quote-${item.id}" value="${escapeHtml(item.quote_amount || '')}" placeholder="e.g. R4,500 once-off + R350/mo" />
+
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading);">Demo / Prototype Link</label>
+            <input class="edit-input" id="demo-${item.id}" value="${escapeHtml(item.demo_url || '')}" placeholder="https://demo-app.up.railway.app" />
+
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading);">Proposal & Scope Notes</label>
+            <textarea class="edit-textarea" id="notes-${item.id}" rows="3" placeholder="Scope inclusions, pages, database hooks...">${escapeHtml(item.proposal_notes || '')}</textarea>
+          </div>
+
+          <div class="card-actions">
+            <button class="action-btn btn-save" onclick="saveProposalDetails('${item.id}')">Save Notes</button>
+            <button class="action-btn btn-next" onclick="moveToApps('${item.id}')">Finalize: Move to Apps →</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderAppsCard(item) {
+      return `
+        <article class="pipeline-card" id="card-${item.id}">
+          <div>
+            <div class="card-meta-top">
+              <span class="source-tag" style="background: rgba(109, 242, 207, 0.15); color: #6df2cf;">Live & Hosted</span>
+              <span style="color: var(--muted);">${escapeHtml(item.company || item.name)}</span>
+            </div>
+            
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading); margin-top: 0.6rem; display: block;">App Name</label>
+            <input class="edit-input" id="appname-${item.id}" value="${escapeHtml(item.app_name || item.name || 'App')}" placeholder="App Name" />
+
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading);">Live Running URL</label>
+            <input class="edit-input" id="liveurl-${item.id}" value="${escapeHtml(item.live_url || item.demo_url || '')}" placeholder="https://app.up.railway.app" />
+
+            <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0.6rem;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading);">Monthly Hosting Price</label>
+                <input class="edit-input" id="monthly-${item.id}" value="${escapeHtml(item.monthly_price || 'R450/month')}" placeholder="R450/month" />
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: var(--heading);">Status</label>
+                <select class="edit-input" id="status-${item.id}">
+                  <option value="active" ${item.status === 'active' ? 'selected' : ''}>Active</option>
+                  <option value="in_dev" ${item.status === 'in_dev' ? 'selected' : ''}>In Dev</option>
+                  <option value="paused" ${item.status === 'paused' ? 'selected' : ''}>Paused</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="card-detail-box" style="margin-top: 0.4rem;">
+              <strong>Client Details</strong>
+              <p style="margin: 0; font-size: 0.85rem;">${escapeHtml(item.name)} · ${escapeHtml(item.phone || item.email || '')}</p>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            ${item.live_url || item.demo_url ? `<a class="action-btn btn-link" href="${escapeHtml(item.live_url || item.demo_url)}" target="_blank">🔗 Open App</a>` : '<span></span>'}
+            <button class="action-btn btn-save" onclick="saveAppDetails('${item.id}')">Save App</button>
+            <button class="action-btn btn-delete" onclick="deleteItem('${item.id}')">Archive</button>
+          </div>
+        </article>
+      `;
+    }
+
+    async function moveToPricing(id) {
+      const item = pipelineData.find(i => i.id === id);
+      if (!item) return;
+      item.stage = 'pricing_links';
+      await updateItem(item);
+      switchTab('pricing_links');
+    }
+
+    async function moveToApps(id) {
+      const item = pipelineData.find(i => i.id === id);
+      if (!item) return;
+      item.stage = 'apps';
+      item.quote_amount = document.getElementById(`quote-${id}`)?.value || item.quote_amount;
+      item.demo_url = document.getElementById(`demo-${id}`)?.value || item.demo_url;
+      item.proposal_notes = document.getElementById(`notes-${id}`)?.value || item.proposal_notes;
+      item.live_url = item.demo_url;
+      item.app_name = item.company || item.name;
+      item.status = 'active';
+      await updateItem(item);
+      switchTab('apps');
+    }
+
+    async function saveProposalDetails(id) {
+      const item = pipelineData.find(i => i.id === id);
+      if (!item) return;
+      item.quote_amount = document.getElementById(`quote-${id}`)?.value || '';
+      item.demo_url = document.getElementById(`demo-${id}`)?.value || '';
+      item.proposal_notes = document.getElementById(`notes-${id}`)?.value || '';
+      await updateItem(item);
+      alert('Proposal details saved!');
+    }
+
+    async function saveAppDetails(id) {
+      const item = pipelineData.find(i => i.id === id);
+      if (!item) return;
+      item.app_name = document.getElementById(`appname-${id}`)?.value || '';
+      item.live_url = document.getElementById(`liveurl-${id}`)?.value || '';
+      item.monthly_price = document.getElementById(`monthly-${id}`)?.value || '';
+      item.status = document.getElementById(`status-${id}`)?.value || 'active';
+      await updateItem(item);
+      alert('App details saved!');
+    }
+
+    async function updateItem(item) {
+      try {
+        const res = await fetch('/api/admin/pipeline', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-pin': adminToken
+          },
+          body: JSON.stringify(item)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          loadPipeline();
+        }
+      } catch (e) {
+        console.error('Update error:', e);
+      }
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('Are you sure you want to delete / archive this entry?')) return;
+      try {
+        const res = await fetch(`/api/admin/pipeline?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: {
+            'x-admin-pin': adminToken
+          }
+        });
+        const data = await res.json();
+        if (data.ok) {
+          loadPipeline();
+        }
+      } catch (e) {
+        console.error('Delete error:', e);
+      }
+    }
+
+    // Modal controls
+    function openEntryModal() {
+      document.getElementById('entry-modal').hidden = false;
+    }
+
+    function closeEntryModal() {
+      document.getElementById('entry-modal').hidden = true;
+      document.getElementById('manual-lead-form').reset();
+    }
+
+    document.getElementById('manual-lead-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const payload = Object.fromEntries(formData.entries());
+      payload.stage = 'demos_ideas';
+
+      try {
+        const res = await fetch('/api/admin/pipeline', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-pin': adminToken
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          closeEntryModal();
+          loadPipeline();
+        } else {
+          alert('Failed to save: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Network error while saving lead.');
+      }
+    });
+
+    checkAuth();
   </script>
 </body>
 </html>

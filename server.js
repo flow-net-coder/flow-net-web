@@ -142,7 +142,7 @@ const mimeTypes = {
 
 loadDotEnv(path.join(rootDir, '.env'));
 
-const ADMIN_PIN = process.env.ADMIN_BOOTSTRAP_PIN || '2026';
+const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_BOOTSTRAP_PIN || '2026';
 
 function isAdmin(req) {
   try {
@@ -474,6 +474,187 @@ function resolveStaticFile(requestPath) {
   return absolutePath;
 }
 
+const pipelineFile = path.join(rootDir, 'pipeline.json');
+
+function ensurePipelineFile() {
+  if (!fs.existsSync(pipelineFile)) {
+    const initialSeed = [
+      {
+        id: 'lead_1',
+        stage: 'demos_ideas',
+        name: 'Sipho Ndlovu',
+        email: 'sipho@example.co.za',
+        phone: '071 234 5678',
+        company: 'Ndlovu Logistics',
+        project_idea: 'Fleet tracking and dispatch bot for drivers',
+        project_goal: 'Automate driver check-ins and delivery sign-offs over WhatsApp',
+        timeline: 'Within 3 weeks',
+        additional_details: 'Needs integration with existing Google Sheets or simple database',
+        source: 'website',
+        proposal_notes: '',
+        demo_url: '',
+        quote_amount: '',
+        scope_summary: '',
+        app_name: '',
+        live_url: '',
+        monthly_price: '',
+        status: 'new',
+        createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+        updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+      },
+      {
+        id: 'lead_2',
+        stage: 'pricing_links',
+        name: 'Claire Bennett',
+        email: 'claire@artisancakes.co.za',
+        phone: '082 998 7766',
+        company: 'Artisan Bakery Co',
+        project_idea: 'Custom bakery ordering site with menu showcase',
+        project_goal: 'Allow customers to view daily bread/pastry stock and place custom cake orders',
+        timeline: 'End of month',
+        additional_details: 'Wants warm aesthetics and WhatsApp order confirmation',
+        source: 'walk_in',
+        proposal_notes: 'Client reviewed demo layout. Preparing custom cake request form addon.',
+        demo_url: 'https://bakery-demo.up.railway.app/',
+        quote_amount: 'R3,800 once-off + R350/mo hosting',
+        scope_summary: '4-page responsive site, menu catalog, WhatsApp ordering hook, SSL & hosting',
+        app_name: 'The Bakery',
+        live_url: '',
+        monthly_price: 'R350/month',
+        status: 'proposal_sent',
+        createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+        updatedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+      },
+      {
+        id: 'lead_3',
+        stage: 'apps',
+        name: 'David Miller',
+        email: 'david@dialflow.io',
+        phone: '083 456 7890',
+        company: 'DialFlow Pro Outbound',
+        project_idea: 'Cold calling agent dashboard and queue system',
+        project_goal: 'Agent login, lead queue, call outcome logging, and analytics',
+        timeline: 'Launched',
+        additional_details: 'Production live on Railway',
+        source: 'website',
+        proposal_notes: 'Full custom dashboard delivered on schedule.',
+        demo_url: 'https://cold-caller-demo.up.railway.app/',
+        quote_amount: 'R8,500 once-off',
+        scope_summary: 'Full dashboard with authentication, queue dispatcher, outcome analytics',
+        app_name: 'COLD CALLER',
+        live_url: 'https://cold-caller-demo.up.railway.app/',
+        monthly_price: 'R650/month',
+        status: 'active',
+        createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
+        updatedAt: new Date(Date.now() - 3600000 * 6).toISOString(),
+      }
+    ];
+    fs.writeFileSync(pipelineFile, JSON.stringify(initialSeed, null, 2));
+  }
+}
+
+async function getPipelineItems() {
+  ensurePipelineFile();
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline?select=*&order=createdAt.desc`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          return data;
+        }
+      }
+    } catch (sbErr) {
+      console.error('[Supabase] Fetch pipeline error:', sbErr.message || sbErr);
+    }
+  }
+
+  try {
+    const raw = fs.readFileSync(pipelineFile, 'utf8');
+    return JSON.parse(raw) || [];
+  } catch {
+    return [];
+  }
+}
+
+async function savePipelineItem(item) {
+  ensurePipelineFile();
+  let items = [];
+  try {
+    items = JSON.parse(fs.readFileSync(pipelineFile, 'utf8')) || [];
+  } catch {
+    items = [];
+  }
+
+  const existingIdx = items.findIndex(i => String(i.id) === String(item.id));
+  if (existingIdx >= 0) {
+    items[existingIdx] = { ...items[existingIdx], ...item, updatedAt: new Date().toISOString() };
+  } else {
+    items.unshift({ ...item, createdAt: item.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+  }
+
+  fs.writeFileSync(pipelineFile, JSON.stringify(items, null, 2));
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+  if (supabaseUrl && supabaseKey) {
+    try {
+      await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify(item)
+      });
+    } catch (sbErr) {
+      console.error('[Supabase] Save item error:', sbErr.message || sbErr);
+    }
+  }
+
+  return item;
+}
+
+async function deletePipelineItem(id) {
+  ensurePipelineFile();
+  let items = [];
+  try {
+    items = JSON.parse(fs.readFileSync(pipelineFile, 'utf8')) || [];
+  } catch {
+    items = [];
+  }
+
+  items = items.filter(i => String(i.id) !== String(id));
+  fs.writeFileSync(pipelineFile, JSON.stringify(items, null, 2));
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+  if (supabaseUrl && supabaseKey) {
+    try {
+      await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline?id=eq.${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+    } catch (sbErr) {
+      console.error('[Supabase] Delete item error:', sbErr.message || sbErr);
+    }
+  }
+}
+
 function dispatchEmailNotification(data) {
   const smtpHost = process.env.SMTP_HOST || 'smtp.hmailplus.com';
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
@@ -579,6 +760,32 @@ const server = http.createServer(async (req, res) => {
         }
         submissions.push(data);
         fs.writeFileSync(submissionsFile, JSON.stringify(submissions, null, 2));
+
+        // Save to pipeline under Stage 1 (demos_ideas)
+        const pipelineEntry = {
+          id: `lead_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          stage: 'demos_ideas',
+          name: String(data.name || 'Anonymous client').trim(),
+          email: String(data.email || '').trim(),
+          phone: String(data.phone || '').trim(),
+          company: String(data.company || '').trim(),
+          project_idea: String(data.project_idea || '').trim(),
+          project_goal: String(data.project_goal || '').trim(),
+          timeline: String(data.timeline || '').trim(),
+          additional_details: String(data.additional_details || '').trim(),
+          source: 'website',
+          proposal_notes: '',
+          demo_url: '',
+          quote_amount: '',
+          scope_summary: '',
+          app_name: '',
+          live_url: '',
+          monthly_price: '',
+          status: 'new',
+          createdAt: data.timestamp,
+          updatedAt: data.timestamp,
+        };
+        savePipelineItem(pipelineEntry).catch((err) => console.error('[Pipeline] Save error:', err));
 
         const acceptsHtml = (req.headers['accept'] || '').includes('text/html');
         if (acceptsHtml && !contentType.includes('application/json')) {
@@ -933,6 +1140,125 @@ const server = http.createServer(async (req, res) => {
           'Content-Type': 'application/json; charset=utf-8',
           'Set-Cookie': `admin_pin=${pin}; Path=/; Max-Age=${24*60*60}; HttpOnly=false`,
         });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+      }
+    });
+    return;
+  }
+
+  // Admin Pipeline API (Demos/Ideas, Pricing & Links, Apps)
+  if (requestPath === '/api/admin/pipeline' && req.method === 'GET') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
+      return;
+    }
+    try {
+      const items = await getPipelineItems();
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, items }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+    }
+    return;
+  }
+
+  if (requestPath === '/api/admin/pipeline' && req.method === 'POST') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
+      return;
+    }
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const item = {
+          id: data.id || `lead_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          stage: data.stage || 'demos_ideas',
+          name: String(data.name || 'Walk-in client').trim(),
+          email: String(data.email || '').trim(),
+          phone: String(data.phone || '').trim(),
+          company: String(data.company || '').trim(),
+          project_idea: String(data.project_idea || '').trim(),
+          project_goal: String(data.project_goal || '').trim(),
+          timeline: String(data.timeline || '').trim(),
+          additional_details: String(data.additional_details || '').trim(),
+          source: data.source || 'walk_in',
+          proposal_notes: String(data.proposal_notes || '').trim(),
+          demo_url: String(data.demo_url || '').trim(),
+          quote_amount: String(data.quote_amount || '').trim(),
+          scope_summary: String(data.scope_summary || '').trim(),
+          app_name: String(data.app_name || '').trim(),
+          live_url: String(data.live_url || '').trim(),
+          monthly_price: String(data.monthly_price || '').trim(),
+          status: data.status || 'new',
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const saved = await savePipelineItem(item);
+        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true, item: saved }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+      }
+    });
+    return;
+  }
+
+  if (requestPath === '/api/admin/pipeline' && req.method === 'PUT') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
+      return;
+    }
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, error: 'Item ID required.' }));
+          return;
+        }
+        const saved = await savePipelineItem(data);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true, item: saved }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
+      }
+    });
+    return;
+  }
+
+  if (requestPath === '/api/admin/pipeline' && req.method === 'DELETE') {
+    if (!isAdmin(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
+      return;
+    }
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const urlParams = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`).searchParams;
+        const id = data.id || urlParams.get('id');
+        if (!id) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, error: 'Item ID required.' }));
+          return;
+        }
+        await deletePipelineItem(id);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: true }));
       } catch (e) {
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });

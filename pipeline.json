@@ -1,5 +1,28 @@
 [
   {
+    "id": "lead_1787590346889_xqqg",
+    "stage": "demos_ideas",
+    "name": "Supabase Drizzle Test",
+    "email": "test@supabase.co",
+    "phone": "",
+    "company": "Drizzle Corp",
+    "project_idea": "Postgres Integration Test",
+    "project_goal": "",
+    "timeline": "",
+    "additional_details": "",
+    "source": "website",
+    "proposal_notes": "",
+    "demo_url": "",
+    "quote_amount": "",
+    "scope_summary": "",
+    "app_name": "",
+    "live_url": "",
+    "monthly_price": "",
+    "status": "new",
+    "createdAt": "2026-08-24T16:52:26.888Z",
+    "updatedAt": "2026-08-24T16:52:26.890Z"
+  },
+  {
     "id": "lead_1787589537608_boly",
     "stage": "demos_ideas",
     "name": "Sarah Connor",

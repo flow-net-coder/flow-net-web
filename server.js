@@ -3,6 +3,8 @@ const http = require('http');
 const path = require('path');
 const child_process = require('child_process');
 const nodemailer = require('nodemailer');
+const { getDb, schema } = require('./db');
+const { eq } = require('drizzle-orm');
 
 const rootDir = __dirname;
 const port = Number.parseInt(process.env.PORT || '3000', 10);
@@ -555,6 +557,41 @@ function ensurePipelineFile() {
 
 async function getPipelineItems() {
   ensurePipelineFile();
+  const db = getDb();
+
+  if (db) {
+    try {
+      const rows = await db.select().from(schema.pipeline);
+      if (rows && rows.length > 0) {
+        return rows.map(r => ({
+          id: r.id,
+          stage: r.stage,
+          name: r.name,
+          email: r.email,
+          phone: r.phone,
+          company: r.company,
+          project_idea: r.project_idea,
+          project_goal: r.project_goal,
+          timeline: r.timeline,
+          additional_details: r.additional_details,
+          source: r.source,
+          proposal_notes: r.proposal_notes,
+          demo_url: r.demo_url,
+          quote_amount: r.quote_amount,
+          scope_summary: r.scope_summary,
+          app_name: r.app_name,
+          live_url: r.live_url,
+          monthly_price: r.monthly_price,
+          status: r.status,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        })).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      }
+    } catch (dbErr) {
+      console.error('[Drizzle] Error fetching pipeline:', dbErr.message || dbErr);
+    }
+  }
+
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_KEY;
 
@@ -569,7 +606,7 @@ async function getPipelineItems() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           return data;
         }
       }
@@ -604,22 +641,41 @@ async function savePipelineItem(item) {
 
   fs.writeFileSync(pipelineFile, JSON.stringify(items, null, 2));
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_KEY;
-  if (supabaseUrl && supabaseKey) {
+  // Sync to PostgreSQL via Drizzle
+  const db = getDb();
+  if (db) {
     try {
-      await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline`, {
-        method: 'POST',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify(item)
+      const dbRow = {
+        id: String(item.id),
+        stage: String(item.stage || 'demos_ideas'),
+        name: String(item.name || ''),
+        email: String(item.email || ''),
+        phone: String(item.phone || ''),
+        company: String(item.company || ''),
+        project_idea: String(item.project_idea || ''),
+        project_goal: String(item.project_goal || ''),
+        timeline: String(item.timeline || ''),
+        additional_details: String(item.additional_details || ''),
+        source: String(item.source || 'website'),
+        proposal_notes: String(item.proposal_notes || ''),
+        demo_url: String(item.demo_url || ''),
+        quote_amount: String(item.quote_amount || ''),
+        scope_summary: String(item.scope_summary || ''),
+        app_name: String(item.app_name || ''),
+        live_url: String(item.live_url || ''),
+        monthly_price: String(item.monthly_price || ''),
+        status: String(item.status || 'new'),
+        created_at: String(item.createdAt || new Date().toISOString()),
+        updated_at: String(item.updatedAt || new Date().toISOString()),
+      };
+
+      await db.insert(schema.pipeline).values(dbRow).onConflictDoUpdate({
+        target: schema.pipeline.id,
+        set: dbRow,
       });
-    } catch (sbErr) {
-      console.error('[Supabase] Save item error:', sbErr.message || sbErr);
+      console.log('[Drizzle] Synced pipeline item to DB:', item.id);
+    } catch (drizzleErr) {
+      console.error('[Drizzle] Error saving pipeline item:', drizzleErr.message || drizzleErr);
     }
   }
 
@@ -638,19 +694,13 @@ async function deletePipelineItem(id) {
   items = items.filter(i => String(i.id) !== String(id));
   fs.writeFileSync(pipelineFile, JSON.stringify(items, null, 2));
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_KEY;
-  if (supabaseUrl && supabaseKey) {
+  const db = getDb();
+  if (db) {
     try {
-      await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline?id=eq.${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
-      });
-    } catch (sbErr) {
-      console.error('[Supabase] Delete item error:', sbErr.message || sbErr);
+      await db.delete(schema.pipeline).where(eq(schema.pipeline.id, String(id)));
+      console.log('[Drizzle] Deleted item from DB:', id);
+    } catch (drizzleErr) {
+      console.error('[Drizzle] Error deleting item:', drizzleErr.message || drizzleErr);
     }
   }
 }

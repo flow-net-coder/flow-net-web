@@ -4,14 +4,23 @@
   "private": true,
   "description": "FLOW-NET public site with Railway-friendly runtime config",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
     "formidable": "^3.0.0",
     "nodemailer": "^9.0.5",
+    "postgres": "^3.4.9",
     "unzipper": "^0.10.11"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10"
   }
 }

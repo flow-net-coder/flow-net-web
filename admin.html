@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FLOW-NET Admin | Client Pipeline & App Operations</title>
+  <title>FLOW-NET Admin | Client Operations Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -27,6 +27,78 @@
       margin-bottom: 1.8rem;
       padding-bottom: 1.2rem;
       border-bottom: 1px solid var(--border);
+    }
+
+    .admin-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+      gap: 1rem;
+      padding: 1.8rem;
+      margin-bottom: 1.4rem;
+      border: 1px solid rgba(255, 94, 0, 0.2);
+      background:
+        radial-gradient(circle at top right, rgba(255, 149, 0, 0.16), transparent 35%),
+        linear-gradient(135deg, rgba(28, 17, 17, 0.96), rgba(18, 11, 11, 0.94));
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .admin-hero-copy h1 {
+      margin-bottom: 0.9rem;
+      font-size: clamp(2.1rem, 4vw, 3.4rem);
+      max-width: 12ch;
+    }
+
+    .admin-hero-copy p {
+      max-width: 62ch;
+    }
+
+    .admin-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.3rem;
+    }
+
+    .admin-hero-panel {
+      display: grid;
+      gap: 0.9rem;
+      align-content: start;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .admin-hero-panel .signal-list {
+      gap: 0.7rem;
+    }
+
+    .admin-hero-panel .signal-list li {
+      color: var(--heading);
+    }
+
+    .admin-board-status {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0 0 1.4rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .admin-board-status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6df2cf;
+      box-shadow: 0 0 0 5px rgba(109, 242, 207, 0.1);
+    }
+
+    .metrics-bar .metric-card {
+      min-height: 116px;
+      justify-content: space-between;
     }
 
     .admin-title-wrap {
@@ -462,6 +534,61 @@
       font-size: 1.3rem;
       margin-bottom: 0.5rem;
     }
+
+    @media (max-width: 820px) {
+      .admin-container {
+        width: min(calc(100% - 1.25rem), 1320px);
+        padding-top: 1rem;
+      }
+
+      .admin-header-bar,
+      .admin-title-wrap {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .admin-header-bar > div:last-child {
+        width: 100%;
+      }
+
+      .admin-header-bar > div:last-child .action-btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .admin-hero {
+        grid-template-columns: 1fr;
+        padding: 1.25rem;
+      }
+
+      .admin-tabs {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .admin-tab-btn {
+        min-width: 0;
+      }
+
+      .pipeline-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #entry-modal form > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+      }
+
+      .card-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .card-actions .action-btn,
+      .card-actions a {
+        justify-content: center;
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body data-page="admin">
@@ -470,7 +597,7 @@
     <div class="modal-card login-box">
       <span class="brand-mark" style="margin: 0 auto 1.2rem;"><img src="assets/logo.png" alt="FLOW-NET" /></span>
       <h2>FLOW-NET Admin</h2>
-      <p style="margin-bottom: 1.5rem;">Enter administrative PIN to access client pipeline & live apps.</p>
+      <p style="margin-bottom: 1.5rem;">Enter the administrative PIN to open the client operations dashboard.</p>
       <form id="pin-form">
         <input
           type="password"
@@ -517,7 +644,7 @@
         <textarea class="edit-textarea" name="additional_details" rows="2" placeholder="Any initial notes or scope requirements"></textarea>
         <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1rem;">
           <button type="button" class="action-btn btn-delete" onclick="closeEntryModal()">Cancel</button>
-          <button type="submit" class="action-btn btn-next" style="padding: 0.75rem 1.6rem;">Save to Demos / Ideas</button>
+          <button type="submit" class="action-btn btn-next" style="padding: 0.75rem 1.6rem;">Save Walk-In Lead</button>
         </div>
       </form>
     </div>
@@ -530,10 +657,10 @@
           <span class="brand-mark"><img src="assets/logo.png" alt="FLOW-NET" /></span>
           <span class="brand-text">
             <strong>FLOW-NET</strong>
-            <small>Operations Dashboard</small>
+            <small>Client Operations</small>
           </span>
         </a>
-        <span class="admin-badge">⚡ Supabase Live</span>
+        <span class="admin-badge">⚡ Live pipeline</span>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.8rem;">
@@ -542,10 +669,34 @@
       </div>
     </header>
 
+    <section class="admin-hero" data-reveal>
+      <div class="admin-hero-copy">
+        <p class="eyebrow">Operations desk</p>
+        <h1>One place to manage walk-ins, proposals, and live client builds.</h1>
+        <p>
+          Capture manual leads, move them through the pipeline, and keep active
+          business work visible without switching tools.
+        </p>
+        <div class="admin-hero-actions">
+          <button type="button" class="action-btn btn-next" onclick="openEntryModal()">+ Add Walk-In</button>
+          <button type="button" class="action-btn btn-link" onclick="loadPipeline()">Refresh Board</button>
+        </div>
+      </div>
+
+      <aside class="admin-hero-panel">
+        <p class="panel-label">Today</p>
+        <ul class="signal-list">
+          <li>New inquiries land in Stage 1.</li>
+          <li>Quotes and live URLs move into proposals and apps.</li>
+          <li>Manual walk-ins can be captured on the spot.</li>
+        </ul>
+      </aside>
+    </section>
+
     <!-- Executive Metrics Overview -->
     <div class="metrics-bar">
       <div class="metric-card">
-        <small>Stage 1: Demos & Ideas</small>
+        <small>Stage 1: New Leads</small>
         <strong id="metric-demos">0</strong>
       </div>
       <div class="metric-card">
@@ -561,6 +712,8 @@
         <strong id="metric-mrr" style="color: #6df2cf;">R0</strong>
       </div>
     </div>
+
+    <p class="admin-board-status" id="board-status" role="status">Connecting to the client pipeline...</p>
 
     <!-- Search & View Mode Switcher -->
     <div class="controls-bar">
@@ -770,6 +923,8 @@
           pipelineData = data.items;
           updateMetrics();
           renderPipeline();
+          const status = document.getElementById('board-status');
+          if (status) status.textContent = `Board refreshed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
       } catch (e) {
         console.error('Failed to load pipeline:', e);

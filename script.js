@@ -227,7 +227,7 @@ function renderAppCard(app) {
           <p>${escapeHtml(review.comment || "Great experience.")}</p>
         </div>
       `).join("")
-    : '<div class="review-item"><p class="review-headline">Sample review</p><p>Mock feedback will appear here until a visitor adds their own.</p></div>';
+    : '<p class="review-empty">No reviews yet. This app is ready for the first visitor response.</p>';
   const thumbnail = app.thumbnailUrl
     ? `<img class="project-thumb" src="${escapeHtml(app.thumbnailUrl)}" alt="${title} preview" />`
     : "";

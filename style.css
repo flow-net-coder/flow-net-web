@@ -198,6 +198,17 @@ code {
   color: var(--heading);
 }
 
+.site-nav a[href="admin.html"] {
+  color: #ffe5d0;
+  border: 1px solid rgba(255, 149, 0, 0.16);
+}
+
+.site-nav a[href="admin.html"]:hover,
+.site-nav a[href="admin.html"].active {
+  background: rgba(255, 149, 0, 0.14);
+  border-color: rgba(255, 149, 0, 0.3);
+}
+
 .nav-toggle {
   display: none;
   border: 0;
@@ -223,6 +234,12 @@ main {
 
 .hero {
   padding: 5.5rem 0 2.8rem;
+}
+
+.hero > .container,
+.section-block > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-grid,
@@ -347,6 +364,13 @@ main {
   background: linear-gradient(180deg, rgba(28, 17, 17, 0.92), rgba(18, 11, 11, 0.88));
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.surface-card:hover,
+.dashboard-panel:hover {
+  border-color: rgba(255, 94, 0, 0.3);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
 }
 
 .dashboard-panel::before,
@@ -444,12 +468,22 @@ main {
 }
 
 .section-block {
-  padding: 1rem 0 0.2rem;
+  padding: 2rem 0 0.4rem;
 }
 
 .section-heading {
   margin-bottom: 1.4rem;
   max-width: 60rem;
+}
+
+.section-heading::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin-top: 1.2rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 
 .section-heading h2,
@@ -577,6 +611,15 @@ main {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.review-empty {
+  margin: 0.2rem 0 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 94, 0, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
 }
 
 .review-headline {
@@ -779,6 +822,12 @@ main {
 .footer-links a {
   color: var(--muted);
   text-decoration: none;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.footer-links a:hover {
+  color: var(--heading);
+  transform: translateX(3px);
 }
 
 .footer-bottom {

@@ -8,18 +8,7 @@
   "loginDetails": "Portal access is available directly through the live app.",
   "createdAt": "2026-07-29T05:03:12.834Z",
   "liveUrl": "https://cold-mailer.up.railway.app/",
-  "reviews": [
-    {
-      "reviewer": "Mina",
-      "rating": 5,
-      "comment": "Fast and very usable for outreach runs."
-    },
-    {
-      "reviewer": "Lerato",
-      "rating": 4,
-      "comment": "Clean interface and strong workflow layout."
-    }
-  ],
-  "averageRating": 4.5,
-  "reviewCount": 2
+  "reviews": [],
+  "averageRating": 0,
+  "reviewCount": 0
 }

@@ -8,18 +8,7 @@
   "loginDetails": "No login required for the public editor.",
   "createdAt": "2026-07-29T05:03:12.835Z",
   "liveUrl": "https://letscrypto25.github.io/Dynamic-CV./",
-  "reviews": [
-    {
-      "reviewer": "Kamo",
-      "rating": 5,
-      "comment": "Super smooth for putting together a strong resume."
-    },
-    {
-      "reviewer": "Tumi",
-      "rating": 4,
-      "comment": "The layout feels polished and modern."
-    }
-  ],
-  "averageRating": 4.5,
-  "reviewCount": 2
+  "reviews": [],
+  "averageRating": 0,
+  "reviewCount": 0
 }

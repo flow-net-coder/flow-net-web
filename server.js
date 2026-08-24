@@ -62,10 +62,7 @@ const curatedAppSeedData = [
     description: 'Cold-mailer outreach workspace for multi-step campaigns. Use the live portal to launch and track outreach efforts.',
     category: 'Email outreach',
     loginDetails: 'Portal access is available directly through the live app.',
-    reviews: [
-      { reviewer: 'Mina', rating: 5, comment: 'Fast and very usable for outreach runs.' },
-      { reviewer: 'Lerato', rating: 4, comment: 'Clean interface and strong workflow layout.' },
-    ],
+    reviews: [],
   },
   {
     appName: 'Cold Caller',
@@ -74,10 +71,7 @@ const curatedAppSeedData = [
     description: 'Lead queue and outbound calling workflow with admin and agent roles. Admin: 2026 · Agent: tester.',
     category: 'Call centre ops',
     loginDetails: 'Admin login: 2026 · Agent login: tester',
-    reviews: [
-      { reviewer: 'Sizwe', rating: 5, comment: 'Excellent for call centre flow and agent tracking.' },
-      { reviewer: 'Asha', rating: 4, comment: 'Simple controls that make daily work feel easier.' },
-    ],
+    reviews: [],
   },
   {
     appName: 'WhatsApp Bot Workspace',
@@ -86,10 +80,7 @@ const curatedAppSeedData = [
     description: 'Automation workspace for WhatsApp conversations, bot flows, and customer support actions. Password: 2026.',
     category: 'Messaging automation',
     loginDetails: 'Password: 2026',
-    reviews: [
-      { reviewer: 'Jade', rating: 5, comment: 'Great for handling fast customer conversations.' },
-      { reviewer: 'Nico', rating: 4, comment: 'Reliable and easy to follow for support flows.' },
-    ],
+    reviews: [],
   },
   {
     appName: 'CV Editor',
@@ -98,10 +89,7 @@ const curatedAppSeedData = [
     description: 'Interactive CV editor for creating a polished, dynamic resume through a simple web interface.',
     category: 'Portfolio tools',
     loginDetails: 'No login required for the public editor.',
-    reviews: [
-      { reviewer: 'Kamo', rating: 5, comment: 'Super smooth for putting together a strong resume.' },
-      { reviewer: 'Tumi', rating: 4, comment: 'The layout feels polished and modern.' },
-    ],
+    reviews: [],
   },
   {
     appName: 'Bakery',
@@ -110,10 +98,7 @@ const curatedAppSeedData = [
     description: 'A clean bakery website demo with product presentation and a friendly storefront experience.',
     category: 'Local business',
     loginDetails: 'No login required for the public storefront.',
-    reviews: [
-      { reviewer: 'Bongani', rating: 4, comment: 'Warm brand feel and nice presentation.' },
-      { reviewer: 'Lihle', rating: 5, comment: 'Very inviting and easy to browse.' },
-    ],
+    reviews: [],
   },
   {
     appName: 'Pizza',
@@ -122,10 +107,7 @@ const curatedAppSeedData = [
     description: 'Pizza ordering demo with a simple digital menu and a polished front-end experience.',
     category: 'Food ordering',
     loginDetails: 'No login required for the public site.',
-    reviews: [
-      { reviewer: 'Rene', rating: 5, comment: 'The menu experience feels fun and approachable.' },
-      { reviewer: 'Mpho', rating: 4, comment: 'Nice visual flow for a food ordering page.' },
-    ],
+    reviews: [],
   },
 ];
 
@@ -148,9 +130,6 @@ const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_BOOTSTRAP_PIN || '2
 
 function isAdmin(req) {
   try {
-    const u = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-    const pinQuery = u.searchParams.get('pin');
-    if (pinQuery && pinQuery === String(ADMIN_PIN)) return true;
     const headerPin = String(req.headers['x-admin-pin'] || '');
     if (headerPin && headerPin === String(ADMIN_PIN)) return true;
     const cookieHeader = req.headers.cookie || '';
@@ -261,6 +240,11 @@ function seedCuratedApps() {
       }
     }
 
+    const reviewSource = Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0
+      ? existingMeta.reviews
+      : (Array.isArray(seed.reviews) ? seed.reviews : []);
+    const reviewStats = computeReviewStats(reviewSource);
+
     const publishMeta = {
       appName: existingMeta.appName || seed.appName,
       publishId,
@@ -271,11 +255,9 @@ function seedCuratedApps() {
       loginDetails: existingMeta.loginDetails || seed.loginDetails || '',
       createdAt: existingMeta.createdAt || new Date().toISOString(),
       liveUrl: new URL(seed.appUrl).href,
-      reviews: Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0
-        ? existingMeta.reviews
-        : (Array.isArray(seed.reviews) ? seed.reviews : []),
-      averageRating: existingMeta.averageRating || computeReviewStats(Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0 ? existingMeta.reviews : (Array.isArray(seed.reviews) ? seed.reviews : [])).averageRating,
-      reviewCount: existingMeta.reviewCount || (Array.isArray(existingMeta.reviews) && existingMeta.reviews.length > 0 ? existingMeta.reviews.length : (Array.isArray(seed.reviews) ? seed.reviews.length : 0)),
+      reviews: reviewSource,
+      averageRating: reviewStats.averageRating,
+      reviewCount: reviewStats.reviewCount,
     };
 
     fs.writeFileSync(metaPath, JSON.stringify(publishMeta, null, 2));
@@ -597,7 +579,7 @@ async function getPipelineItems() {
 
   if (supabaseUrl && supabaseKey) {
     try {
-      const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline?select=*&order=createdAt.desc`, {
+      const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/pipeline?select=*&order=created_at.desc`, {
         headers: {
           'apikey': supabaseKey,
           'Authorization': `Bearer ${supabaseKey}`,
@@ -607,7 +589,29 @@ async function getPipelineItems() {
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
-          return data;
+          return data.map((r) => ({
+            id: r.id,
+            stage: r.stage,
+            name: r.name,
+            email: r.email,
+            phone: r.phone,
+            company: r.company,
+            project_idea: r.project_idea,
+            project_goal: r.project_goal,
+            timeline: r.timeline,
+            additional_details: r.additional_details,
+            source: r.source,
+            proposal_notes: r.proposal_notes,
+            demo_url: r.demo_url,
+            quote_amount: r.quote_amount,
+            scope_summary: r.scope_summary,
+            app_name: r.app_name,
+            live_url: r.live_url,
+            monthly_price: r.monthly_price,
+            status: r.status,
+            createdAt: r.createdAt || r.created_at,
+            updatedAt: r.updatedAt || r.updated_at,
+          })).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         }
       }
     } catch (sbErr) {
@@ -1185,10 +1189,19 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        // set a cookie valid for 1 day
+        const cookieFlags = [
+          `admin_pin=${encodeURIComponent(pin)}`,
+          'Path=/',
+          `Max-Age=${24 * 60 * 60}`,
+          'HttpOnly',
+          'SameSite=Strict',
+        ];
+        if (process.env.NODE_ENV === 'production') {
+          cookieFlags.push('Secure');
+        }
         res.writeHead(200, {
           'Content-Type': 'application/json; charset=utf-8',
-          'Set-Cookie': `admin_pin=${pin}; Path=/; Max-Age=${24*60*60}; HttpOnly=false`,
+          'Set-Cookie': cookieFlags.join('; '),
         });
         res.end(JSON.stringify({ ok: true }));
       } catch (e) {

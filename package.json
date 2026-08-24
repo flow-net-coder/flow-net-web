@@ -5,6 +5,7 @@
   "description": "FLOW-NET public site with Railway-friendly runtime config",
   "scripts": {
     "start": "node server.js",
+    "test": "node --test",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio"

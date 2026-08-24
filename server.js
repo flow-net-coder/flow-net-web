@@ -2,6 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const child_process = require('child_process');
+const nodemailer = require('nodemailer');
 
 const rootDir = __dirname;
 const port = Number.parseInt(process.env.PORT || '3000', 10);
@@ -9,50 +10,46 @@ const port = Number.parseInt(process.env.PORT || '3000', 10);
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: 'FLOW-NET',
   SITE_URL: '',
-  CONTACT_EMAIL: 'flow.net.v2@gmail.com',
+  CONTACT_EMAIL: 'info@flow-net.co.za',
+  SALES_EMAIL: 'sales@flow-net.co.za',
   CONTACT_PHONE: '+27659821883',
   CONTACT_PHONE_LABEL: '065 982 1883 (WhatsApp)',
-  PROJECT_ONE_NAME: 'Cold Caller App',
-  PROJECT_ONE_TYPE: 'Cold caller dashboard',
+  PROJECT_ONE_NAME: 'COLD CALLER',
+  PROJECT_ONE_TYPE: 'Cold calling dashboard',
   PROJECT_ONE_STATUS: 'Live app',
-  PROJECT_ONE_SUMMARY: 'Agent login, lead queue, call outcomes, and stats for the DialFlow Pro cold-calling workflow.',
-  PROJECT_ONE_META_LABEL: 'Focus',
-  PROJECT_ONE_META_VALUE: 'Lead calling, agent stats, queue flow',
-  PROJECT_ONE_CTA_LABEL: 'Open app',
-  PROJECT_ONE_URL: 'https://coldcalle.up.railway.app/',
-  PROJECT_ONE_THUMBNAIL_URL: 'assets/cold-caller-preview.svg',
-  PROJECT_TWO_NAME: 'Your second app',
-  PROJECT_TWO_TYPE: 'Live app slot',
-  PROJECT_TWO_STATUS: 'Ready to connect',
-  PROJECT_TWO_SUMMARY: 'Use this slot for another public app, a client showcase, or a product demo.',
-  PROJECT_TWO_META_LABEL: 'Status',
-  PROJECT_TWO_META_VALUE: 'Waiting for your URL',
-  PROJECT_TWO_CTA_LABEL: 'Contact us',
-  PROJECT_TWO_URL: '',
-  PROJECT_THREE_NAME: 'Your third app',
-  PROJECT_THREE_TYPE: 'Live app slot',
-  PROJECT_THREE_STATUS: 'Ready to connect',
-  PROJECT_THREE_SUMMARY: 'Keep the public list tidy while you add the apps you want visitors to open.',
-  PROJECT_THREE_META_LABEL: 'Status',
-  PROJECT_THREE_META_VALUE: 'Waiting for your URL',
-  PROJECT_THREE_CTA_LABEL: 'Contact us',
-  PROJECT_THREE_URL: '',
-  PROJECT_FOUR_NAME: 'Your fourth app',
-  PROJECT_FOUR_TYPE: 'Live app slot',
-  PROJECT_FOUR_STATUS: 'Ready to connect',
-  PROJECT_FOUR_SUMMARY: 'Another app slot for a live product, workflow tool, or customer-facing portal.',
-  PROJECT_FOUR_META_LABEL: 'Status',
-  PROJECT_FOUR_META_VALUE: 'Waiting for your URL',
-  PROJECT_FOUR_CTA_LABEL: 'Contact us',
-  PROJECT_FOUR_URL: '',
-  PROJECT_FIVE_NAME: 'Your fifth app',
-  PROJECT_FIVE_TYPE: 'Live app slot',
-  PROJECT_FIVE_STATUS: 'Ready to connect',
-  PROJECT_FIVE_SUMMARY: 'Use this final slot for your strongest live app or the next one you want to launch.',
-  PROJECT_FIVE_META_LABEL: 'Status',
-  PROJECT_FIVE_META_VALUE: 'Waiting for your URL',
-  PROJECT_FIVE_CTA_LABEL: 'Contact us',
-  PROJECT_FIVE_URL: '',
+  PROJECT_ONE_SUMMARY: 'Agent login, lead queue, call outcomes, and live stats for outbound calling teams. Built for speed and tracking.',
+  PROJECT_ONE_META_LABEL: 'Live at',
+  PROJECT_ONE_META_VALUE: 'cold-caller-demo.up.railway.app',
+  PROJECT_ONE_CTA_LABEL: 'Open COLD CALLER',
+  PROJECT_ONE_URL: 'https://cold-caller-demo.up.railway.app/',
+  PROJECT_ONE_THUMBNAIL_URL: 'assets/cold-caller-preview.png',
+  PROJECT_TWO_NAME: 'THE BAKERY',
+  PROJECT_TWO_TYPE: 'Bakery showcase',
+  PROJECT_TWO_STATUS: 'Live demo',
+  PROJECT_TWO_SUMMARY: 'Bakery website demo with a menu-first layout, warm brand storytelling, and beautiful product presentation.',
+  PROJECT_TWO_META_LABEL: 'Live at',
+  PROJECT_TWO_META_VALUE: 'bakery-demo.up.railway.app',
+  PROJECT_TWO_CTA_LABEL: 'Open THE BAKERY',
+  PROJECT_TWO_URL: 'https://bakery-demo.up.railway.app/',
+  PROJECT_TWO_THUMBNAIL_URL: 'assets/bakery-preview.png',
+  PROJECT_THREE_NAME: 'DYNAMIC CV',
+  PROJECT_THREE_TYPE: 'Resume editor',
+  PROJECT_THREE_STATUS: 'Live app',
+  PROJECT_THREE_SUMMARY: 'Dynamic CV editor for creating, editing and publishing professional curriculum vitae with live preview and export.',
+  PROJECT_THREE_META_LABEL: 'Live at',
+  PROJECT_THREE_META_VALUE: 'dynamic-cv-demo.up.railway.app',
+  PROJECT_THREE_CTA_LABEL: 'Open DYNAMIC CV',
+  PROJECT_THREE_URL: 'https://dynamic-cv-demo.up.railway.app/',
+  PROJECT_THREE_THUMBNAIL_URL: 'assets/dynamic-cv-preview.png',
+  PROJECT_FOUR_NAME: 'LOMBICOR',
+  PROJECT_FOUR_TYPE: 'Business management tool',
+  PROJECT_FOUR_STATUS: 'Live app',
+  PROJECT_FOUR_SUMMARY: 'Lombicor is a lean business management tool built to streamline operations, track activity, and keep teams aligned.',
+  PROJECT_FOUR_META_LABEL: 'Live at',
+  PROJECT_FOUR_META_VALUE: 'lombicor-demo.up.railway.app',
+  PROJECT_FOUR_CTA_LABEL: 'Open LOMBICOR',
+  PROJECT_FOUR_URL: 'https://lombicor-demo.up.railway.app/',
+  PROJECT_FOUR_THUMBNAIL_URL: 'assets/lombicor-preview.png',
 };
 
 const curatedAppSeedData = [
@@ -494,7 +491,7 @@ const server = http.createServer(async (req, res) => {
     req.on('data', chunk => {
       body += chunk.toString();
     });
-    req.on('end', () => {
+    req.on('end', async () => {
       try {
         const data = JSON.parse(body);
         data.timestamp = new Date().toISOString();
@@ -506,6 +503,59 @@ const server = http.createServer(async (req, res) => {
         }
         submissions.push(data);
         fs.writeFileSync(submissionsFile, JSON.stringify(submissions, null, 2));
+
+        // Attempt sending email notification via Nodemailer if SMTP configured
+        const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+        const smtpPort = Number(process.env.SMTP_PORT) || 465;
+        const smtpUser = process.env.SMTP_USER || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
+        const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '';
+        const recipient = process.env.CONTACT_RECIPIENT_EMAIL || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
+
+        if (smtpPass) {
+          try {
+            const transporter = nodemailer.createTransport({
+              host: smtpHost,
+              port: smtpPort,
+              secure: smtpPort === 465,
+              auth: {
+                user: smtpUser,
+                pass: smtpPass,
+              },
+            });
+
+            await transporter.sendMail({
+              from: `"FLOW-NET Website" <${smtpUser}>`,
+              to: recipient,
+              replyTo: data.email || undefined,
+              subject: `New Project Inquiry from ${data.name || 'Client'}`,
+              text: `New submission from FLOW-NET website:\n\nName: ${data.name || 'N/A'}\nEmail: ${data.email || 'N/A'}\nPhone: ${data.phone || 'N/A'}\nCompany: ${data.company || 'N/A'}\n\nProject Idea:\n${data.project_idea || 'N/A'}\n\nProblem to solve:\n${data.project_goal || 'N/A'}\n\nTimeline: ${data.timeline || 'N/A'}\n\nAdditional Details:\n${data.additional_details || 'N/A'}\n\nSubmitted at: ${data.timestamp}`,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; color: #222;">
+                  <h2 style="color: #FF3B30;">New Project Inquiry - FLOW-NET</h2>
+                  <p><strong>Name:</strong> ${data.name || 'N/A'}</p>
+                  <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email || 'N/A'}</a></p>
+                  <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
+                  <p><strong>Company:</strong> ${data.company || 'N/A'}</p>
+                  <hr style="border: 0; border-top: 1px solid #eee;" />
+                  <h3>Project Idea</h3>
+                  <p style="background: #f9f9f9; padding: 12px; border-radius: 6px;">${(data.project_idea || 'N/A').replace(/\n/g, '<br/>')}</p>
+                  <h3>Problem to Solve / Goal</h3>
+                  <p style="background: #f9f9f9; padding: 12px; border-radius: 6px;">${(data.project_goal || 'N/A').replace(/\n/g, '<br/>')}</p>
+                  <p><strong>Timeline:</strong> ${data.timeline || 'N/A'}</p>
+                  <p><strong>Additional Details:</strong> ${(data.additional_details || 'N/A').replace(/\n/g, '<br/>')}</p>
+                  <hr style="border: 0; border-top: 1px solid #eee;" />
+                  <small style="color: #888;">Submitted at: ${data.timestamp}</small>
+                </div>
+              `
+            });
+            console.log('Dispatched email inquiry to', recipient);
+          } catch (mailErr) {
+            console.error('SMTP email dispatch error:', mailErr);
+          }
+        } else {
+          console.log('SMTP_PASS not set in environment. Saved inquiry to submissions.json');
+        }
+
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: true, message: 'Thanks. Your message was sent.' }));
       } catch (err) {

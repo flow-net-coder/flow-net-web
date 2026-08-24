@@ -1,7 +1,8 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
   SITE_URL: "https://flow-net-pro.up.railway.app",
-  CONTACT_EMAIL: "flow.net.v2@gmail.com",
+  CONTACT_EMAIL: "info@flow-net.co.za",
+  SALES_EMAIL: "sales@flow-net.co.za",
   CONTACT_PHONE: "+27659821883",
   CONTACT_PHONE_LABEL: "065 982 1883 (WhatsApp)",
   PROJECT_ONE_NAME: "COLD CALLER",

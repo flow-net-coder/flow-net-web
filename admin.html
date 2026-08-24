@@ -14,9 +14,9 @@
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <style>
     .admin-container {
-      width: min(calc(100% - 2rem), 1280px);
+      width: min(calc(100% - 2rem), 1320px);
       margin: 0 auto;
-      padding: 2rem 0 5rem;
+      padding: 1.8rem 0 5rem;
     }
 
     .admin-header-bar {
@@ -24,8 +24,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 2.2rem;
-      padding-bottom: 1.5rem;
+      margin-bottom: 1.8rem;
+      padding-bottom: 1.2rem;
       border-bottom: 1px solid var(--border);
     }
 
@@ -38,7 +38,8 @@
     .admin-badge {
       display: inline-flex;
       align-items: center;
-      padding: 0.3rem 0.75rem;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
       border-radius: 999px;
       font-size: 0.78rem;
       font-weight: 800;
@@ -49,11 +50,113 @@
       color: var(--accent);
     }
 
+    /* Metrics Summary Bar */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .metric-card {
+      background: linear-gradient(180deg, rgba(28, 17, 17, 0.85), rgba(18, 11, 11, 0.85));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .metric-card small {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric-card strong {
+      font-size: 1.8rem;
+      font-family: var(--font-heading);
+      color: var(--heading);
+    }
+
+    /* Controls & Search */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.4rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(14, 9, 9, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem 0.75rem 2.4rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.92rem;
+    }
+
+    .search-input:focus {
+      outline: 0;
+      border-color: var(--accent-2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .view-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(20, 13, 13, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.25rem;
+    }
+
+    .view-toggle-btn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .view-toggle-btn.active {
+      background: rgba(255, 149, 0, 0.2);
+      color: var(--heading);
+    }
+
     .admin-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.8rem;
       background: rgba(20, 13, 13, 0.85);
       padding: 0.5rem;
       border-radius: 20px;
@@ -114,7 +217,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.4rem;
       flex-wrap: wrap;
     }
 
@@ -285,6 +388,41 @@
       border-color: var(--accent-2);
     }
 
+    /* Dense Data Table View */
+    .table-container {
+      overflow-x: auto;
+      background: rgba(20, 13, 13, 0.85);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+    }
+
+    .pipeline-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .pipeline-table th {
+      background: rgba(30, 18, 18, 0.95);
+      color: var(--heading);
+      padding: 1rem 1.2rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .pipeline-table td {
+      padding: 1rem 1.2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+    }
+
+    .pipeline-table tr:hover td {
+      background: rgba(255, 94, 0, 0.04);
+    }
+
     /* Modal */
     .modal-backdrop {
       position: fixed;
@@ -332,18 +470,18 @@
     <div class="modal-card login-box">
       <span class="brand-mark" style="margin: 0 auto 1.2rem;"><img src="assets/logo.png" alt="FLOW-NET" /></span>
       <h2>FLOW-NET Admin</h2>
-      <p style="margin-bottom: 1.5rem;">Enter the administrative PIN to access client pipeline & apps.</p>
+      <p style="margin-bottom: 1.5rem;">Enter administrative PIN to access client pipeline & live apps.</p>
       <form id="pin-form">
         <input
           type="password"
           id="pin-input"
           class="edit-input"
-          placeholder="Admin PIN"
+          placeholder="PIN (Default: 2026)"
           style="font-size: 1.2rem; text-align: center; letter-spacing: 0.3em; margin-bottom: 1rem;"
           required
           autofocus
         />
-        <button type="submit" class="button button-primary" style="width: 100%;">Unlock Dashboard</button>
+        <button type="submit" class="button button-primary" style="width: 100%;">Unlock Operations Dashboard</button>
         <p id="pin-error" style="color: #ff7e7e; margin-top: 0.8rem;" hidden>Invalid PIN. Please try again.</p>
       </form>
     </div>
@@ -395,7 +533,7 @@
             <small>Operations Dashboard</small>
           </span>
         </a>
-        <span class="admin-badge">Admin Pipeline</span>
+        <span class="admin-badge">⚡ Supabase Live</span>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.8rem;">
@@ -404,18 +542,57 @@
       </div>
     </header>
 
+    <!-- Executive Metrics Overview -->
+    <div class="metrics-bar">
+      <div class="metric-card">
+        <small>Stage 1: Demos & Ideas</small>
+        <strong id="metric-demos">0</strong>
+      </div>
+      <div class="metric-card">
+        <small>Stage 2: Active Proposals</small>
+        <strong id="metric-pricing">0</strong>
+      </div>
+      <div class="metric-card">
+        <small>Stage 3: Live Hosted Apps</small>
+        <strong id="metric-apps">0</strong>
+      </div>
+      <div class="metric-card">
+        <small>Monthly Hosted Retainers</small>
+        <strong id="metric-mrr" style="color: #6df2cf;">R0</strong>
+      </div>
+    </div>
+
+    <!-- Search & View Mode Switcher -->
+    <div class="controls-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="search-filter"
+          class="search-input"
+          placeholder="Filter by client name, company, email, or keywords..."
+          oninput="handleSearch()"
+        />
+      </div>
+
+      <div class="view-toggle-wrap">
+        <button type="button" class="view-toggle-btn active" id="btn-view-cards" onclick="setViewMode('cards')">🎴 Cards View</button>
+        <button type="button" class="view-toggle-btn" id="btn-view-table" onclick="setViewMode('table')">📋 List Table</button>
+      </div>
+    </div>
+
     <!-- 3 Navigation Tabs -->
     <nav class="admin-tabs">
       <button type="button" class="admin-tab-btn active" id="tab-btn-demos" onclick="switchTab('demos_ideas')">
-        <span>💡 Demos / Ideas</span>
+        <span>💡 1. Demos / Ideas</span>
         <span class="tab-count" id="count-demos">0</span>
       </button>
       <button type="button" class="admin-tab-btn" id="tab-btn-pricing" onclick="switchTab('pricing_links')">
-        <span>💼 Pricing & Links</span>
+        <span>💼 2. Pricing & Links</span>
         <span class="tab-count" id="count-pricing">0</span>
       </button>
       <button type="button" class="admin-tab-btn" id="tab-btn-apps" onclick="switchTab('apps')">
-        <span>🚀 Live Apps</span>
+        <span>🚀 3. Live Apps</span>
         <span class="tab-count" id="count-apps">0</span>
       </button>
     </nav>
@@ -430,6 +607,21 @@
         <button type="button" class="action-btn btn-next" onclick="openEntryModal()">+ Add Walk-In / Manual Lead</button>
       </div>
       <div class="pipeline-grid" id="grid-demos_ideas"></div>
+      <div class="table-container" id="table-wrap-demos_ideas" hidden>
+        <table class="pipeline-table" id="table-demos_ideas">
+          <thead>
+            <tr>
+              <th>Client / Company</th>
+              <th>Contact</th>
+              <th>Project Idea & Goal</th>
+              <th>Timeline</th>
+              <th>Source</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
 
     <!-- Tab 2: Pricing & Links -->
@@ -441,6 +633,20 @@
         </div>
       </div>
       <div class="pipeline-grid" id="grid-pricing_links"></div>
+      <div class="table-container" id="table-wrap-pricing_links" hidden>
+        <table class="pipeline-table" id="table-pricing_links">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Quote / Price</th>
+              <th>Demo URL</th>
+              <th>Scope & Notes</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
 
     <!-- Tab 3: Apps -->
@@ -452,11 +658,28 @@
         </div>
       </div>
       <div class="pipeline-grid" id="grid-apps"></div>
+      <div class="table-container" id="table-wrap-apps" hidden>
+        <table class="pipeline-table" id="table-apps">
+          <thead>
+            <tr>
+              <th>App Name</th>
+              <th>Live Link</th>
+              <th>Client</th>
+              <th>Monthly Price</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
   </div>
 
   <script>
     let activeTab = 'demos_ideas';
+    let viewMode = 'cards';
+    let searchQuery = '';
     let pipelineData = [];
     let adminToken = sessionStorage.getItem('fn_admin_pin') || '';
 
@@ -521,6 +744,18 @@
       renderPipeline();
     }
 
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById('btn-view-cards').classList.toggle('active', mode === 'cards');
+      document.getElementById('btn-view-table').classList.toggle('active', mode === 'table');
+      renderPipeline();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('search-filter').value.toLowerCase().trim();
+      renderPipeline();
+    }
+
     async function loadPipeline() {
       try {
         const res = await fetch('/api/admin/pipeline', {
@@ -533,7 +768,7 @@
         const data = await res.json();
         if (data.ok && Array.isArray(data.items)) {
           pipelineData = data.items;
-          updateCounts();
+          updateMetrics();
           renderPipeline();
         }
       } catch (e) {
@@ -541,7 +776,7 @@
       }
     }
 
-    function updateCounts() {
+    function updateMetrics() {
       const demos = pipelineData.filter(i => (i.stage || 'demos_ideas') === 'demos_ideas').length;
       const pricing = pipelineData.filter(i => i.stage === 'pricing_links').length;
       const apps = pipelineData.filter(i => i.stage === 'apps').length;
@@ -549,30 +784,75 @@
       document.getElementById('count-demos').textContent = demos;
       document.getElementById('count-pricing').textContent = pricing;
       document.getElementById('count-apps').textContent = apps;
+
+      document.getElementById('metric-demos').textContent = demos;
+      document.getElementById('metric-pricing').textContent = pricing;
+      document.getElementById('metric-apps').textContent = apps;
+
+      // Compute MRR sum
+      let totalMRR = 0;
+      pipelineData.filter(i => i.stage === 'apps').forEach(app => {
+        const priceStr = String(app.monthly_price || '').replace(/[^0-9]/g, '');
+        if (priceStr) totalMRR += Number(priceStr);
+      });
+      document.getElementById('metric-mrr').textContent = totalMRR > 0 ? `R${totalMRR.toLocaleString()}/mo` : 'R0';
+    }
+
+    function getFilteredItems() {
+      let items = pipelineData.filter(i => (i.stage || 'demos_ideas') === activeTab);
+      if (searchQuery) {
+        items = items.filter(i => {
+          const str = `${i.name || ''} ${i.company || ''} ${i.email || ''} ${i.phone || ''} ${i.project_idea || ''} ${i.app_name || ''}`.toLowerCase();
+          return str.includes(searchQuery);
+        });
+      }
+      return items;
     }
 
     function renderPipeline() {
-      updateCounts();
-      const targetGrid = document.getElementById(`grid-${activeTab}`);
-      if (!targetGrid) return;
+      updateMetrics();
+      const grid = document.getElementById(`grid-${activeTab}`);
+      const tableWrap = document.getElementById(`table-wrap-${activeTab}`);
+      const tableBody = document.querySelector(`#table-${activeTab} tbody`);
 
-      const items = pipelineData.filter(i => (i.stage || 'demos_ideas') === activeTab);
+      if (viewMode === 'cards') {
+        if (grid) grid.hidden = false;
+        if (tableWrap) tableWrap.hidden = true;
+      } else {
+        if (grid) grid.hidden = true;
+        if (tableWrap) tableWrap.hidden = false;
+      }
+
+      const items = getFilteredItems();
 
       if (items.length === 0) {
-        targetGrid.innerHTML = `
-          <div class="empty-tab-state" style="grid-column: 1 / -1;">
-            <h3>No entries in this stage</h3>
-            <p>Entries will appear here as leads move through the pipeline.</p>
-          </div>
-        `;
+        if (grid) {
+          grid.innerHTML = `
+            <div class="empty-tab-state" style="grid-column: 1 / -1;">
+              <h3>No matching entries found</h3>
+              <p>Try clearing search filters or add a new walk-in lead.</p>
+            </div>
+          `;
+        }
+        if (tableBody) {
+          tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 3rem;">No entries found.</td></tr>`;
+        }
         return;
       }
 
-      targetGrid.innerHTML = items.map(item => {
-        if (activeTab === 'demos_ideas') return renderDemosCard(item);
-        if (activeTab === 'pricing_links') return renderPricingCard(item);
-        if (activeTab === 'apps') return renderAppsCard(item);
-      }).join('');
+      if (viewMode === 'cards') {
+        grid.innerHTML = items.map(item => {
+          if (activeTab === 'demos_ideas') return renderDemosCard(item);
+          if (activeTab === 'pricing_links') return renderPricingCard(item);
+          if (activeTab === 'apps') return renderAppsCard(item);
+        }).join('');
+      } else if (tableBody) {
+        tableBody.innerHTML = items.map(item => {
+          if (activeTab === 'demos_ideas') return renderDemosTableRow(item);
+          if (activeTab === 'pricing_links') return renderPricingTableRow(item);
+          if (activeTab === 'apps') return renderAppsTableRow(item);
+        }).join('');
+      }
     }
 
     function renderDemosCard(item) {
@@ -616,6 +896,33 @@
       `;
     }
 
+    function renderDemosTableRow(item) {
+      return `
+        <tr>
+          <td>
+            <strong>${escapeHtml(item.name || 'Anonymous')}</strong><br/>
+            <small style="color: var(--accent);">${escapeHtml(item.company || 'Individual')}</small>
+          </td>
+          <td>
+            <div>${escapeHtml(item.email || '—')}</div>
+            <small style="color: var(--muted);">${escapeHtml(item.phone || '—')}</small>
+          </td>
+          <td style="max-width: 320px;">
+            <div>${escapeHtml(item.project_idea || '—')}</div>
+            ${item.project_goal ? `<small style="color: var(--muted);">${escapeHtml(item.project_goal)}</small>` : ''}
+          </td>
+          <td>${escapeHtml(item.timeline || 'Flexible')}</td>
+          <td><span class="source-tag">${escapeHtml(item.source || 'Website')}</span></td>
+          <td>
+            <div style="display: flex; gap: 0.4rem;">
+              <button class="action-btn btn-next" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="moveToPricing('${item.id}')">Next →</button>
+              <button class="action-btn btn-delete" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" onclick="deleteItem('${item.id}')">✕</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
     function renderPricingCard(item) {
       return `
         <article class="pipeline-card" id="card-${item.id}">
@@ -642,6 +949,28 @@
             <button class="action-btn btn-next" onclick="moveToApps('${item.id}')">Finalize: Move to Apps →</button>
           </div>
         </article>
+      `;
+    }
+
+    function renderPricingTableRow(item) {
+      return `
+        <tr>
+          <td>
+            <strong>${escapeHtml(item.company || item.name)}</strong><br/>
+            <small style="color: var(--muted);">${escapeHtml(item.name)}</small>
+          </td>
+          <td><strong>${escapeHtml(item.quote_amount || 'Quote pending')}</strong></td>
+          <td>
+            ${item.demo_url ? `<a href="${escapeHtml(item.demo_url)}" target="_blank" style="color: var(--accent-2);">🔗 View Demo</a>` : '<span style="color: var(--muted);">No demo link</span>'}
+          </td>
+          <td style="max-width: 280px;"><small>${escapeHtml(item.proposal_notes || '—')}</small></td>
+          <td>
+            <div style="display: flex; gap: 0.4rem;">
+              <button class="action-btn btn-next" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="moveToApps('${item.id}')">Finalize →</button>
+              <button class="action-btn btn-delete" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" onclick="deleteItem('${item.id}')">✕</button>
+            </div>
+          </td>
+        </tr>
       `;
     }
 
@@ -687,6 +1016,31 @@
             <button class="action-btn btn-delete" onclick="deleteItem('${item.id}')">Archive</button>
           </div>
         </article>
+      `;
+    }
+
+    function renderAppsTableRow(item) {
+      return `
+        <tr>
+          <td>
+            <strong>${escapeHtml(item.app_name || item.company || item.name)}</strong>
+          </td>
+          <td>
+            ${item.live_url || item.demo_url ? `<a href="${escapeHtml(item.live_url || item.demo_url)}" target="_blank" style="color: #6df2cf;">🔗 Open Live App</a>` : '<span style="color: var(--muted);">No URL</span>'}
+          </td>
+          <td>
+            <div>${escapeHtml(item.name || '—')}</div>
+            <small style="color: var(--muted);">${escapeHtml(item.company || '')}</small>
+          </td>
+          <td><strong style="color: #6df2cf;">${escapeHtml(item.monthly_price || 'R450/month')}</strong></td>
+          <td><span class="source-tag" style="background: rgba(109, 242, 207, 0.15); color: #6df2cf;">${escapeHtml(item.status || 'Active')}</span></td>
+          <td>
+            <div style="display: flex; gap: 0.4rem;">
+              ${item.live_url || item.demo_url ? `<a class="action-btn btn-link" style="padding: 0.4rem 0.7rem; font-size: 0.8rem;" href="${escapeHtml(item.live_url || item.demo_url)}" target="_blank">Open</a>` : ''}
+              <button class="action-btn btn-delete" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" onclick="deleteItem('${item.id}')">✕</button>
+            </div>
+          </td>
+        </tr>
       `;
     }
 

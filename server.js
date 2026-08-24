@@ -493,7 +493,26 @@ const server = http.createServer(async (req, res) => {
     });
     req.on('end', async () => {
       try {
-        const data = JSON.parse(body);
+        let data = {};
+        const contentType = req.headers['content-type'] || '';
+        if (contentType.includes('application/json')) {
+          try {
+            data = JSON.parse(body);
+          } catch {
+            data = {};
+          }
+        } else if (contentType.includes('application/x-www-form-urlencoded')) {
+          const params = new URLSearchParams(body);
+          data = Object.fromEntries(params.entries());
+        } else {
+          try {
+            data = JSON.parse(body);
+          } catch {
+            const params = new URLSearchParams(body);
+            data = Object.fromEntries(params.entries());
+          }
+        }
+
         data.timestamp = new Date().toISOString();
         const submissionsFile = path.join(__dirname, 'submissions.json');
         let submissions = [];
@@ -559,9 +578,17 @@ const server = http.createServer(async (req, res) => {
           console.log('SMTP_PASS not set in environment. Saved inquiry to submissions.json');
         }
 
+        const acceptsHtml = (req.headers['accept'] || '').includes('text/html');
+        if (acceptsHtml && !contentType.includes('application/json')) {
+          res.writeHead(302, { Location: '/contact.html?submitted=true#start-project-form' });
+          res.end();
+          return;
+        }
+
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: true, message: 'Thanks. Your message was sent.' }));
       } catch (err) {
+        console.error('Error processing submission:', err);
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: 'Invalid submission data.' }));
       }

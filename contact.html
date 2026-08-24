@@ -99,7 +99,7 @@
         </div>
 
         <article class="surface-card project-form" data-reveal>
-          <form action="/submit-project" method="post" novalidate>
+          <form action="/submit-project" method="post" data-enhance="true">
             <div class="form-grid">
               <label class="form-field">
                 <span>Full name</span>
@@ -140,6 +140,7 @@
             </label>
 
             <button class="button button-primary form-submit" type="submit">Send project brief</button>
+            <p class="form-status" data-form-status hidden></p>
           </form>
         </article>
       </div>

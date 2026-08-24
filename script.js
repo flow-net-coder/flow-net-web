@@ -202,7 +202,7 @@ async function submitEnhancedForm(form) {
 }
 
 function enhanceForms() {
-  document.querySelectorAll("form[data-enhance='true']").forEach((form) => {
+  document.querySelectorAll("form[data-enhance='true'], form[action*='submit-project']").forEach((form) => {
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       submitEnhancedForm(form);

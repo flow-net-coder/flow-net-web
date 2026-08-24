@@ -8,7 +8,18 @@
   "loginDetails": "No login required for the public storefront.",
   "createdAt": "2026-07-29T05:03:12.836Z",
   "liveUrl": "https://letscrypto25.github.io/THE_BAKERY-/",
-  "reviews": [],
-  "averageRating": 0,
-  "reviewCount": 0
+  "reviews": [
+    {
+      "reviewer": "Bongani",
+      "rating": 4,
+      "comment": "Warm brand feel and nice presentation."
+    },
+    {
+      "reviewer": "Lihle",
+      "rating": 5,
+      "comment": "Very inviting and easy to browse."
+    }
+  ],
+  "averageRating": 4.5,
+  "reviewCount": 2
 }

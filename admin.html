@@ -101,6 +101,169 @@
       justify-content: space-between;
     }
 
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .overview-card,
+    .overview-panel {
+      background: linear-gradient(180deg, rgba(28, 17, 17, 0.94), rgba(18, 11, 11, 0.9));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+    }
+
+    .overview-card {
+      grid-column: span 3;
+      padding: 1.2rem 1.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .overview-card small,
+    .overview-panel h3,
+    .overview-panel p {
+      margin: 0;
+    }
+
+    .overview-card small {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .overview-card strong {
+      font-size: 1.7rem;
+      font-family: var(--font-heading);
+      color: var(--heading);
+    }
+
+    .overview-card span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .overview-panel {
+      grid-column: span 6;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 100%;
+    }
+
+    .overview-panel.full {
+      grid-column: span 12;
+    }
+
+    .overview-panel h3 {
+      font-size: 1.05rem;
+      color: var(--heading);
+    }
+
+    .overview-panel p {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .overview-subgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .overview-bars {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .overview-bar-row {
+      display: grid;
+      grid-template-columns: minmax(110px, 0.9fr) minmax(0, 2fr) auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .overview-bar-label {
+      color: var(--heading);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .overview-bar-track {
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .overview-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .overview-bar-value {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .overview-list {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .overview-list-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .overview-list-item strong {
+      color: var(--heading);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .overview-list-item small {
+      color: var(--muted);
+    }
+
+    .overview-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 149, 0, 0.15);
+      color: var(--accent-2);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .overview-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
     .admin-title-wrap {
       display: flex;
       align-items: center;
@@ -282,6 +445,10 @@
     .admin-tab-btn.active .tab-count {
       background: var(--accent);
       color: #fff;
+    }
+
+    .tab-view[hidden] {
+      display: none !important;
     }
 
     .tab-header-row {
@@ -671,15 +838,15 @@
 
     <section class="admin-hero" data-reveal>
       <div class="admin-hero-copy">
-        <p class="eyebrow">Operations desk</p>
-        <h1>One place to manage walk-ins, proposals, and live client builds.</h1>
+        <p class="eyebrow">Operations dashboard</p>
+        <h1>Stats, analytics, and live client pipeline control in one place.</h1>
         <p>
-          Capture manual leads, move them through the pipeline, and keep active
-          business work visible without switching tools.
+          Track intake, proposals, and deployed apps from a single dashboard, then
+          jump into the pipeline tabs whenever you need to edit the details.
         </p>
         <div class="admin-hero-actions">
           <button type="button" class="action-btn btn-next" onclick="openEntryModal()">+ Add Walk-In</button>
-          <button type="button" class="action-btn btn-link" onclick="loadPipeline()">Refresh Board</button>
+          <button type="button" class="action-btn btn-link" onclick="loadPipeline()">Refresh Dashboard</button>
         </div>
       </div>
 
@@ -716,7 +883,7 @@
     <p class="admin-board-status" id="board-status" role="status">Connecting to the client pipeline...</p>
 
     <!-- Search & View Mode Switcher -->
-    <div class="controls-bar">
+    <div class="controls-bar" id="pipeline-controls">
       <div class="search-input-wrap">
         <span class="search-icon">🔍</span>
         <input
@@ -736,7 +903,11 @@
 
     <!-- 3 Navigation Tabs -->
     <nav class="admin-tabs">
-      <button type="button" class="admin-tab-btn active" id="tab-btn-demos" onclick="switchTab('demos_ideas')">
+      <button type="button" class="admin-tab-btn active" id="tab-btn-overview" onclick="switchTab('overview')">
+        <span>📊 Overview</span>
+        <span class="tab-count" id="count-overview">Live</span>
+      </button>
+      <button type="button" class="admin-tab-btn" id="tab-btn-demos" onclick="switchTab('demos_ideas')">
         <span>💡 1. Demos / Ideas</span>
         <span class="tab-count" id="count-demos">0</span>
       </button>
@@ -750,8 +921,13 @@
       </button>
     </nav>
 
+    <!-- Overview -->
+    <section id="view-overview" class="tab-view">
+      <div class="overview-grid" id="overview-root"></div>
+    </section>
+
     <!-- Tab 1: Demos / Ideas -->
-    <section id="view-demos_ideas" class="tab-view">
+    <section id="view-demos_ideas" class="tab-view" hidden>
       <div class="tab-header-row">
         <div>
           <h2>Stage 1: Demos & Initial Inquiries</h2>
@@ -830,7 +1006,7 @@
   </div>
 
   <script>
-    let activeTab = 'demos_ideas';
+    let activeTab = 'overview';
     let viewMode = 'cards';
     let searchQuery = '';
     let pipelineData = [];
@@ -888,8 +1064,10 @@
 
     function switchTab(tabName) {
       activeTab = tabName;
-      ['demos_ideas', 'pricing_links', 'apps'].forEach(t => {
-        const btn = document.getElementById(`tab-btn-${t === 'demos_ideas' ? 'demos' : t === 'pricing_links' ? 'pricing' : 'apps'}`);
+      const controls = document.getElementById('pipeline-controls');
+      if (controls) controls.hidden = (tabName === 'overview');
+      ['overview', 'demos_ideas', 'pricing_links', 'apps'].forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t === 'demos_ideas' ? 'demos' : t === 'pricing_links' ? 'pricing' : t === 'apps' ? 'apps' : 'overview'}`);
         const view = document.getElementById(`view-${t}`);
         if (btn) btn.classList.toggle('active', t === tabName);
         if (view) view.hidden = (t !== tabName);
@@ -909,6 +1087,45 @@
       renderPipeline();
     }
 
+    function getStageCounts() {
+      return {
+        overview: pipelineData.length,
+        demos_ideas: pipelineData.filter(i => (i.stage || 'demos_ideas') === 'demos_ideas').length,
+        pricing_links: pipelineData.filter(i => i.stage === 'pricing_links').length,
+        apps: pipelineData.filter(i => i.stage === 'apps').length,
+      };
+    }
+
+    function formatRelativeTime(value) {
+      if (!value) return 'No timestamp';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'No timestamp';
+      const diffMs = Date.now() - date.getTime();
+      const diffHours = Math.max(0, Math.round(diffMs / 36e5));
+      if (diffHours < 1) return 'Just now';
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.round(diffHours / 24);
+      return `${diffDays}d ago`;
+    }
+
+    function getSourceSummary() {
+      const counts = new Map();
+      pipelineData.forEach(item => {
+        const source = String(item.source || 'website').toLowerCase();
+        counts.set(source, (counts.get(source) || 0) + 1);
+      });
+      return [...counts.entries()]
+        .map(([label, value]) => ({ label, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+    }
+
+    function getRecentItems() {
+      return [...pipelineData]
+        .sort((a, b) => new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0))
+        .slice(0, 5);
+    }
+
     async function loadPipeline() {
       try {
         const res = await fetch('/api/admin/pipeline', {
@@ -924,7 +1141,7 @@
           updateMetrics();
           renderPipeline();
           const status = document.getElementById('board-status');
-          if (status) status.textContent = `Board refreshed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          if (status) status.textContent = `Dashboard refreshed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
       } catch (e) {
         console.error('Failed to load pipeline:', e);
@@ -953,19 +1170,126 @@
       document.getElementById('metric-mrr').textContent = totalMRR > 0 ? `R${totalMRR.toLocaleString()}/mo` : 'R0';
     }
 
-    function getFilteredItems() {
-      let items = pipelineData.filter(i => (i.stage || 'demos_ideas') === activeTab);
-      if (searchQuery) {
-        items = items.filter(i => {
-          const str = `${i.name || ''} ${i.company || ''} ${i.email || ''} ${i.phone || ''} ${i.project_idea || ''} ${i.app_name || ''}`.toLowerCase();
-          return str.includes(searchQuery);
+    function renderOverview() {
+      const total = pipelineData.length;
+      const demos = pipelineData.filter(i => (i.stage || 'demos_ideas') === 'demos_ideas').length;
+      const pricing = pipelineData.filter(i => i.stage === 'pricing_links').length;
+      const apps = pipelineData.filter(i => i.stage === 'apps').length;
+      const stageShare = total > 0 ? Math.round((apps / total) * 100) : 0;
+
+      const sourceSummary = getSourceSummary();
+      const recentItems = getRecentItems();
+      const stageRows = [
+        { label: 'Demos / Ideas', value: demos, tone: 'var(--accent-2)' },
+        { label: 'Pricing / Links', value: pricing, tone: '#ffb55a' },
+        { label: 'Live Apps', value: apps, tone: '#6df2cf' },
+      ];
+
+      const maxStage = Math.max(1, ...stageRows.map(row => row.value));
+      const maxSource = Math.max(1, ...sourceSummary.map(row => row.value));
+      const overviewRoot = document.getElementById('overview-root');
+
+      if (!overviewRoot) return;
+
+      overviewRoot.innerHTML = `
+        <article class="overview-card">
+          <small>Total Pipeline</small>
+          <strong>${total}</strong>
+          <span>All active leads, proposals, and deployed apps currently tracked.</span>
+        </article>
+        <article class="overview-card">
+          <small>Live Apps</small>
+          <strong>${apps}</strong>
+          <span>${stageShare}% of the pipeline has reached live status.</span>
+        </article>
+        <article class="overview-card">
+          <small>Monthly MRR</small>
+          <strong id="overview-mrr">R0</strong>
+          <span>Estimated recurring maintenance revenue from live apps.</span>
+        </article>
+        <article class="overview-card">
+          <small>Stage 1 Intake</small>
+          <strong>${demos}</strong>
+          <span>Walk-ins and fresh website inquiries awaiting proposal work.</span>
+        </article>
+        <div class="overview-panel">
+          <div>
+            <h3>Pipeline Mix</h3>
+            <p>Stage distribution across intake, proposals, and live deployments.</p>
+          </div>
+          <div class="overview-bars">
+            ${stageRows.map(row => `
+              <div class="overview-bar-row">
+                <div class="overview-bar-label">${escapeHtml(row.label)}</div>
+                <div class="overview-bar-track">
+                  <div class="overview-bar-fill" style="width: ${Math.round((row.value / maxStage) * 100)}%; background: linear-gradient(90deg, ${row.tone}, var(--accent-2));"></div>
+                </div>
+                <div class="overview-bar-value">${row.value}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="overview-actions">
+            <button type="button" class="action-btn btn-next" onclick="switchTab('demos_ideas')">Open Lead Board</button>
+            <button type="button" class="action-btn btn-link" onclick="switchTab('pricing_links')">View Pricing</button>
+            <button type="button" class="action-btn btn-link" onclick="switchTab('apps')">View Live Apps</button>
+          </div>
+        </div>
+        <div class="overview-panel">
+          <div>
+            <h3>Lead Sources</h3>
+            <p>Where the current pipeline is coming from right now.</p>
+          </div>
+          <div class="overview-bars">
+            ${sourceSummary.length > 0 ? sourceSummary.map(row => `
+              <div class="overview-bar-row">
+                <div class="overview-bar-label">${escapeHtml(row.label)}</div>
+                <div class="overview-bar-track">
+                  <div class="overview-bar-fill" style="width: ${Math.round((row.value / maxSource) * 100)}%;"></div>
+                </div>
+                <div class="overview-bar-value">${row.value}</div>
+              </div>
+            `).join('') : '<p>No source data yet.</p>'}
+          </div>
+        </div>
+        <div class="overview-panel full">
+          <div>
+            <h3>Recent Activity</h3>
+            <p>Newest pipeline items based on creation or last update time.</p>
+          </div>
+          <div class="overview-list">
+            ${recentItems.length > 0 ? recentItems.map(item => {
+              const stageLabel = item.stage === 'apps' ? 'Live App' : item.stage === 'pricing_links' ? 'Proposal' : 'Lead';
+              const title = item.app_name || item.company || item.name || 'Unnamed entry';
+              const detail = item.project_idea || item.proposal_notes || item.live_url || 'No extra details';
+              return `
+                <div class="overview-list-item">
+                  <div>
+                    <strong>${escapeHtml(title)}</strong>
+                    <small>${escapeHtml(detail)}</small>
+                  </div>
+                  <div style="text-align: right;">
+                    <span class="overview-pill">${escapeHtml(stageLabel)}</span>
+                    <small style="display: block; margin-top: 0.35rem;">${escapeHtml(formatRelativeTime(item.updatedAt || item.createdAt))}</small>
+                  </div>
+                </div>
+              `;
+            }).join('') : '<div class="empty-tab-state"><h3>No activity yet</h3><p>Add a walk-in or move an item through the pipeline to populate the dashboard.</p></div>'}
+          </div>
+        </div>
+      `;
+
+      const mrrTarget = document.getElementById('overview-mrr');
+      if (mrrTarget) {
+        let totalMRR = 0;
+        pipelineData.filter(i => i.stage === 'apps').forEach(app => {
+          const priceStr = String(app.monthly_price || '').replace(/[^0-9]/g, '');
+          if (priceStr) totalMRR += Number(priceStr);
         });
+        mrrTarget.textContent = totalMRR > 0 ? `R${totalMRR.toLocaleString()}/mo` : 'R0';
       }
-      return items;
     }
 
-    function renderPipeline() {
-      updateMetrics();
+    function renderTabbedPipeline() {
       const grid = document.getElementById(`grid-${activeTab}`);
       const tableWrap = document.getElementById(`table-wrap-${activeTab}`);
       const tableBody = document.querySelector(`#table-${activeTab} tbody`);
@@ -1008,6 +1332,28 @@
           if (activeTab === 'apps') return renderAppsTableRow(item);
         }).join('');
       }
+    }
+
+    function getFilteredItems() {
+      let items = pipelineData.filter(i => (i.stage || 'demos_ideas') === activeTab);
+      if (searchQuery) {
+        items = items.filter(i => {
+          const str = `${i.name || ''} ${i.company || ''} ${i.email || ''} ${i.phone || ''} ${i.project_idea || ''} ${i.app_name || ''}`.toLowerCase();
+          return str.includes(searchQuery);
+        });
+      }
+      return items;
+    }
+
+    function renderPipeline() {
+      const controls = document.getElementById('pipeline-controls');
+      if (controls) controls.hidden = (activeTab === 'overview');
+      if (activeTab === 'overview') {
+        renderOverview();
+        return;
+      }
+      updateMetrics();
+      renderTabbedPipeline();
     }
 
     function renderDemosCard(item) {

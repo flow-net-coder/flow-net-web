@@ -505,8 +505,8 @@ const server = http.createServer(async (req, res) => {
         fs.writeFileSync(submissionsFile, JSON.stringify(submissions, null, 2));
 
         // Attempt sending email notification via Nodemailer if SMTP configured
-        const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-        const smtpPort = Number(process.env.SMTP_PORT) || 465;
+        const smtpHost = process.env.SMTP_HOST || 'smtp.hmailplus.com';
+        const smtpPort = Number(process.env.SMTP_PORT) || 587;
         const smtpUser = process.env.SMTP_USER || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
         const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '';
         const recipient = process.env.CONTACT_RECIPIENT_EMAIL || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
@@ -521,6 +521,9 @@ const server = http.createServer(async (req, res) => {
                 user: smtpUser,
                 pass: smtpPass,
               },
+              tls: {
+                rejectUnauthorized: false
+              }
             });
 
             await transporter.sendMail({

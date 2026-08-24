@@ -474,7 +474,64 @@ function resolveStaticFile(requestPath) {
   return absolutePath;
 }
 
-seedCuratedApps();
+function dispatchEmailNotification(data) {
+  const smtpHost = process.env.SMTP_HOST || 'smtp.hmailplus.com';
+  const smtpPort = Number(process.env.SMTP_PORT) || 587;
+  const smtpUser = process.env.SMTP_USER || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
+  const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '';
+  const recipient = process.env.CONTACT_RECIPIENT_EMAIL || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
+
+  if (!smtpPass) {
+    console.log('[Form Submission] SMTP_PASS not set. Submission saved to submissions.json.');
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 10000,
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+
+  transporter.sendMail({
+    from: `"FLOW-NET Website" <${smtpUser}>`,
+    to: recipient,
+    replyTo: data.email || undefined,
+    subject: `New Project Inquiry from ${data.name || 'Client'}`,
+    text: `New submission from FLOW-NET website:\n\nName: ${data.name || 'N/A'}\nEmail: ${data.email || 'N/A'}\nPhone: ${data.phone || 'N/A'}\nCompany: ${data.company || 'N/A'}\n\nProject Idea:\n${data.project_idea || 'N/A'}\n\nProblem to solve:\n${data.project_goal || 'N/A'}\n\nTimeline: ${data.timeline || 'N/A'}\n\nAdditional Details:\n${data.additional_details || 'N/A'}\n\nSubmitted at: ${data.timestamp}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; color: #222;">
+        <h2 style="color: #FF3B30;">New Project Inquiry - FLOW-NET</h2>
+        <p><strong>Name:</strong> ${data.name || 'N/A'}</p>
+        <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email || 'N/A'}</a></p>
+        <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
+        <p><strong>Company:</strong> ${data.company || 'N/A'}</p>
+        <hr style="border: 0; border-top: 1px solid #eee;" />
+        <h3>Project Idea</h3>
+        <p style="background: #f9f9f9; padding: 12px; border-radius: 6px;">${(data.project_idea || 'N/A').replace(/\n/g, '<br/>')}</p>
+        <h3>Problem to Solve / Goal</h3>
+        <p style="background: #f9f9f9; padding: 12px; border-radius: 6px;">${(data.project_goal || 'N/A').replace(/\n/g, '<br/>')}</p>
+        <p><strong>Timeline:</strong> ${data.timeline || 'N/A'}</p>
+        <p><strong>Additional Details:</strong> ${(data.additional_details || 'N/A').replace(/\n/g, '<br/>')}</p>
+        <hr style="border: 0; border-top: 1px solid #eee;" />
+        <small style="color: #888;">Submitted at: ${data.timestamp}</small>
+      </div>
+    `
+  }).then((info) => {
+    console.log('[Form Submission] Successfully sent email notification to', recipient, info && info.messageId);
+  }).catch((err) => {
+    console.error('[Form Submission] SMTP error while sending email:', err.message || err);
+  });
+}
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
@@ -491,7 +548,7 @@ const server = http.createServer(async (req, res) => {
     req.on('data', chunk => {
       body += chunk.toString();
     });
-    req.on('end', async () => {
+    req.on('end', () => {
       try {
         let data = {};
         const contentType = req.headers['content-type'] || '';
@@ -523,70 +580,17 @@ const server = http.createServer(async (req, res) => {
         submissions.push(data);
         fs.writeFileSync(submissionsFile, JSON.stringify(submissions, null, 2));
 
-        // Attempt sending email notification via Nodemailer if SMTP configured
-        const smtpHost = process.env.SMTP_HOST || 'smtp.hmailplus.com';
-        const smtpPort = Number(process.env.SMTP_PORT) || 587;
-        const smtpUser = process.env.SMTP_USER || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
-        const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '';
-        const recipient = process.env.CONTACT_RECIPIENT_EMAIL || process.env.PUBLIC_CONTACT_EMAIL || 'info@flow-net.co.za';
-
-        if (smtpPass) {
-          try {
-            const transporter = nodemailer.createTransport({
-              host: smtpHost,
-              port: smtpPort,
-              secure: smtpPort === 465,
-              auth: {
-                user: smtpUser,
-                pass: smtpPass,
-              },
-              tls: {
-                rejectUnauthorized: false
-              }
-            });
-
-            await transporter.sendMail({
-              from: `"FLOW-NET Website" <${smtpUser}>`,
-              to: recipient,
-              replyTo: data.email || undefined,
-              subject: `New Project Inquiry from ${data.name || 'Client'}`,
-              text: `New submission from FLOW-NET website:\n\nName: ${data.name || 'N/A'}\nEmail: ${data.email || 'N/A'}\nPhone: ${data.phone || 'N/A'}\nCompany: ${data.company || 'N/A'}\n\nProject Idea:\n${data.project_idea || 'N/A'}\n\nProblem to solve:\n${data.project_goal || 'N/A'}\n\nTimeline: ${data.timeline || 'N/A'}\n\nAdditional Details:\n${data.additional_details || 'N/A'}\n\nSubmitted at: ${data.timestamp}`,
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; color: #222;">
-                  <h2 style="color: #FF3B30;">New Project Inquiry - FLOW-NET</h2>
-                  <p><strong>Name:</strong> ${data.name || 'N/A'}</p>
-                  <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email || 'N/A'}</a></p>
-                  <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
-                  <p><strong>Company:</strong> ${data.company || 'N/A'}</p>
-                  <hr style="border: 0; border-top: 1px solid #eee;" />
-                  <h3>Project Idea</h3>
-                  <p style="background: #f9f9f9; padding: 12px; border-radius: 6px;">${(data.project_idea || 'N/A').replace(/\n/g, '<br/>')}</p>
-                  <h3>Problem to Solve / Goal</h3>
-                  <p style="background: #f9f9f9; padding: 12px; border-radius: 6px;">${(data.project_goal || 'N/A').replace(/\n/g, '<br/>')}</p>
-                  <p><strong>Timeline:</strong> ${data.timeline || 'N/A'}</p>
-                  <p><strong>Additional Details:</strong> ${(data.additional_details || 'N/A').replace(/\n/g, '<br/>')}</p>
-                  <hr style="border: 0; border-top: 1px solid #eee;" />
-                  <small style="color: #888;">Submitted at: ${data.timestamp}</small>
-                </div>
-              `
-            });
-            console.log('Dispatched email inquiry to', recipient);
-          } catch (mailErr) {
-            console.error('SMTP email dispatch error:', mailErr);
-          }
-        } else {
-          console.log('SMTP_PASS not set in environment. Saved inquiry to submissions.json');
-        }
-
         const acceptsHtml = (req.headers['accept'] || '').includes('text/html');
         if (acceptsHtml && !contentType.includes('application/json')) {
           res.writeHead(302, { Location: '/contact.html?submitted=true#start-project-form' });
           res.end();
-          return;
+        } else {
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: true, message: 'Thanks. Your message was sent.' }));
         }
 
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true, message: 'Thanks. Your message was sent.' }));
+        // Dispatch email notification asynchronously in the background
+        dispatchEmailNotification(data);
       } catch (err) {
         console.error('Error processing submission:', err);
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });

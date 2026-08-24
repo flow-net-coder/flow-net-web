@@ -356,7 +356,7 @@ async function renderLiveApps() {
           <p class="eyebrow">Nothing live yet</p>
           <h3>No apps have been added yet.</h3>
           <p>Add a live URL and thumbnail and it will show up here automatically.</p>
-          <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
+          <a class="button button-primary" href="contact.html#start-project-form">Contact us</a>
         </article>
       `;
       return;
@@ -370,7 +370,7 @@ async function renderLiveApps() {
         <p class="eyebrow">Load issue</p>
         <h3>We could not load the live app list.</h3>
         <p>Please try again in a moment or add a live URL and thumbnail.</p>
-        <a class="button button-primary" href="contact.html#start-project-form">Add your app</a>
+        <a class="button button-primary" href="contact.html#start-project-form">Contact us</a>
       </article>
     `;
   }

@@ -1,10 +1,10 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
   SITE_URL: "https://www.flow-net.co.za",
-  API_BASE_URL: "https://flow-net-pro.up.railway.app",
+  API_BASE_URL: "https://www.flow-net.co.za",
   CONTACT_FORM_ENDPOINT: "https://formsubmit.co/ajax/info@flow-net.co.za",
-  LIVE_APPS_ENDPOINT: "https://flow-net-pro.up.railway.app/api/live-apps",
-  REVIEW_ENDPOINT: "https://flow-net-pro.up.railway.app/api/review",
+  LIVE_APPS_ENDPOINT: "https://www.flow-net.co.za/api/live-apps",
+  REVIEW_ENDPOINT: "https://www.flow-net.co.za/api/review",
   CONTACT_EMAIL: "info@flow-net.co.za",
   SALES_EMAIL: "sales@flow-net.co.za",
   CONTACT_PHONE: "+27659821883",

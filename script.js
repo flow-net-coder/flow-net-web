@@ -1,6 +1,8 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
   SITE_URL: "https://www.flow-net.co.za",
+  WHATSAPP_URL: "https://wa.me/27659821883?text=Hi%20FLOW-NET%2C%20I%20want%20to%20talk%20about%20a%20project.",
+  WHATSAPP_LABEL: "Chat on WhatsApp",
   API_BASE_URL: "https://www.flow-net.co.za",
   CONTACT_FORM_ENDPOINT: "https://formsubmit.co/ajax/info@flow-net.co.za",
   LIVE_APPS_ENDPOINT: "https://www.flow-net.co.za/api/live-apps",
@@ -146,6 +148,71 @@ function showFormSuccessFromQuery() {
   }
 }
 
+function getFeaturedAppsFromConfig() {
+  return [
+    {
+      appName: getPublicConfigValue("PROJECT_ONE_NAME"),
+      appUrl: getPublicConfigValue("PROJECT_ONE_URL"),
+      thumbnailUrl: getPublicConfigValue("PROJECT_ONE_THUMBNAIL_URL"),
+      description: getPublicConfigValue("PROJECT_ONE_SUMMARY"),
+      category: getPublicConfigValue("PROJECT_ONE_TYPE"),
+      loginDetails: getPublicConfigValue("PROJECT_ONE_META_VALUE"),
+    },
+    {
+      appName: getPublicConfigValue("PROJECT_TWO_NAME"),
+      appUrl: getPublicConfigValue("PROJECT_TWO_URL"),
+      thumbnailUrl: getPublicConfigValue("PROJECT_TWO_THUMBNAIL_URL"),
+      description: getPublicConfigValue("PROJECT_TWO_SUMMARY"),
+      category: getPublicConfigValue("PROJECT_TWO_TYPE"),
+      loginDetails: getPublicConfigValue("PROJECT_TWO_META_VALUE"),
+    },
+    {
+      appName: getPublicConfigValue("PROJECT_THREE_NAME"),
+      appUrl: getPublicConfigValue("PROJECT_THREE_URL"),
+      thumbnailUrl: getPublicConfigValue("PROJECT_THREE_THUMBNAIL_URL"),
+      description: getPublicConfigValue("PROJECT_THREE_SUMMARY"),
+      category: getPublicConfigValue("PROJECT_THREE_TYPE"),
+      loginDetails: getPublicConfigValue("PROJECT_THREE_META_VALUE"),
+    },
+    {
+      appName: getPublicConfigValue("PROJECT_FOUR_NAME"),
+      appUrl: getPublicConfigValue("PROJECT_FOUR_URL"),
+      thumbnailUrl: getPublicConfigValue("PROJECT_FOUR_THUMBNAIL_URL"),
+      description: getPublicConfigValue("PROJECT_FOUR_SUMMARY"),
+      category: getPublicConfigValue("PROJECT_FOUR_TYPE"),
+      loginDetails: getPublicConfigValue("PROJECT_FOUR_META_VALUE"),
+    },
+  ].filter((app) => app.appName && app.appUrl);
+}
+
+function renderFeaturedAppCard(app) {
+  const title = escapeHtml(app.appName);
+  const description = escapeHtml(app.description || "A FLOW-NET showcase app.");
+  const liveUrl = escapeHtml(app.appUrl || "#");
+  const thumbnail = app.thumbnailUrl
+    ? `<img class="project-thumb" src="${escapeHtml(app.thumbnailUrl)}" alt="${title} preview" />`
+    : "";
+  const category = app.category ? `<p class="project-meta"><strong>Type</strong>: ${escapeHtml(app.category)}</p>` : "";
+  const loginDetails = app.loginDetails ? `<p class="project-meta"><strong>Live at</strong>: ${escapeHtml(app.loginDetails)}</p>` : "";
+
+  return `
+    <article class="surface-card project-card">
+      ${thumbnail}
+      <div class="project-topline">
+        <p class="project-type">FLOW-NET showcase</p>
+        <span class="project-status">Featured</span>
+      </div>
+      <h3>${title}</h3>
+      <p>${description}</p>
+      ${category}
+      ${loginDetails}
+      <p class="project-pitch">Want something like this for your business? We can tailor the branding, database, user accounts, admin dashboard, bookings, payments, API integrations, and automated workflows.</p>
+      <a class="text-link" href="contact.html#start-project-form">Build something like this</a>
+      <a class="text-link" href="${liveUrl}" target="_blank" rel="noreferrer">Open live app</a>
+    </article>
+  `;
+}
+
 function applyNavigation() {
   if (!navToggle || !siteNav) {
     return;
@@ -233,7 +300,8 @@ async function submitEnhancedForm(form) {
       body: isFormSubmitAjax ? body : JSON.stringify(body),
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok || payload.ok === false) {
+    const successFlag = payload.ok ?? payload.success;
+    if (!response.ok || successFlag === false || successFlag === "false") {
       throw new Error(payload.error || `Request failed with status ${response.status}`);
     }
 
@@ -421,11 +489,17 @@ async function renderLiveApps() {
     target.innerHTML = apps.map(renderAppCard).join("");
     attachReviewForms();
   } catch (error) {
+    const featuredApps = getFeaturedAppsFromConfig();
+    if (featuredApps.length > 0) {
+      target.innerHTML = featuredApps.map(renderFeaturedAppCard).join("");
+      return;
+    }
+
     target.innerHTML = `
       <article class="surface-card project-card empty-state-card">
         <p class="eyebrow">Load issue</p>
         <h3>We could not load the live app list.</h3>
-        <p>Please try again in a moment or add a live URL and thumbnail.</p>
+        <p>Please try again in a moment or contact FLOW-NET about a new project.</p>
         <a class="button button-primary" href="contact.html#start-project-form">Contact us</a>
       </article>
     `;

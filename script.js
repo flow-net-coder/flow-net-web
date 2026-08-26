@@ -244,8 +244,8 @@ function applyRevealAnimations() {
         });
       },
       {
-        threshold: 0.01,
-        rootMargin: "0px 0px -8% 0px",
+        threshold: 0.05,
+        rootMargin: "0px 0px 18% 0px",
       }
     );
 
@@ -299,10 +299,19 @@ async function submitEnhancedForm(form) {
       headers,
       body: isFormSubmitAjax ? body : JSON.stringify(body),
     });
-    const payload = await response.json().catch(() => ({}));
-    const successFlag = payload.ok ?? payload.success;
-    if (!response.ok || successFlag === false || successFlag === "false") {
-      throw new Error(payload.error || `Request failed with status ${response.status}`);
+    const rawResponse = await response.text();
+    let payload = {};
+
+    if (rawResponse) {
+      try {
+        payload = JSON.parse(rawResponse);
+      } catch {
+        payload = { message: rawResponse };
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(payload.error || payload.message || `Request failed with status ${response.status}`);
     }
 
     form.reset();

@@ -1028,8 +1028,8 @@ main {
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 420ms ease, transform 420ms ease;
+  transform: translateY(10px);
+  transition: opacity 300ms ease, transform 300ms ease;
 }
 
 [data-reveal].revealed {

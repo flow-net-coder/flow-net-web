@@ -27,7 +27,7 @@ function waitForServer(url, attempts = 50) {
 before(async () => {
   child = spawn(process.execPath, ['server.js'], {
     cwd: projectRoot,
-    env: { ...process.env, PORT: '3100', HOST: '127.0.0.1' },
+    env: { ...process.env, PORT: '3100', HOST: '0.0.0.0' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 

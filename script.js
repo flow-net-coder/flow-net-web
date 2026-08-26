@@ -1,6 +1,10 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
   SITE_URL: "https://flow-net-pro.up.railway.app",
+  API_BASE_URL: "https://flow-net-pro.up.railway.app",
+  CONTACT_FORM_ENDPOINT: "https://flow-net-pro.up.railway.app/submit-project",
+  LIVE_APPS_ENDPOINT: "https://flow-net-pro.up.railway.app/api/live-apps",
+  REVIEW_ENDPOINT: "https://flow-net-pro.up.railway.app/api/review",
   CONTACT_EMAIL: "info@flow-net.co.za",
   SALES_EMAIL: "sales@flow-net.co.za",
   CONTACT_PHONE: "+27659821883",
@@ -48,6 +52,11 @@ const publicConfig = {
   ...(window.FLOW_NET_PUBLIC_CONFIG || {}),
 };
 
+publicConfig.API_BASE_URL = publicConfig.API_BASE_URL || PUBLIC_CONFIG_DEFAULTS.API_BASE_URL;
+publicConfig.CONTACT_FORM_ENDPOINT = publicConfig.CONTACT_FORM_ENDPOINT || `${publicConfig.API_BASE_URL.replace(/\/+$/, "")}/submit-project`;
+publicConfig.LIVE_APPS_ENDPOINT = publicConfig.LIVE_APPS_ENDPOINT || `${publicConfig.API_BASE_URL.replace(/\/+$/, "")}/api/live-apps`;
+publicConfig.REVIEW_ENDPOINT = publicConfig.REVIEW_ENDPOINT || `${publicConfig.API_BASE_URL.replace(/\/+$/, "")}/api/review`;
+
 const navToggle = document.querySelector(".nav-toggle");
 const siteNav = document.querySelector(".site-nav");
 const revealItems = document.querySelectorAll("[data-reveal]");
@@ -55,6 +64,20 @@ const yearTarget = document.getElementById("year");
 
 function getPublicConfigValue(key) {
   return publicConfig[key] || "";
+}
+
+function getApiUrl(pathname) {
+  if (/^https?:\/\//i.test(pathname)) {
+    return pathname;
+  }
+
+  const baseUrl = String(publicConfig.API_BASE_URL || "").replace(/\/+$/, "");
+  const cleanPath = String(pathname || "").startsWith("/") ? String(pathname) : `/${String(pathname || "")}`;
+  if (!baseUrl) {
+    return cleanPath;
+  }
+
+  return `${baseUrl}${cleanPath}`;
 }
 
 function applyPublicConfig() {
@@ -170,6 +193,7 @@ async function submitEnhancedForm(form) {
   const submitButton = form.querySelector('[type="submit"]');
   const originalLabel = submitButton ? submitButton.textContent : "";
   const action = form.getAttribute("action") || "";
+  const endpoint = publicConfig.CONTACT_FORM_ENDPOINT || action;
   const method = (form.getAttribute("method") || "post").toUpperCase();
   const body = Object.fromEntries(new FormData(form).entries());
 
@@ -179,7 +203,7 @@ async function submitEnhancedForm(form) {
   }
 
   try {
-    const response = await fetch(action, {
+    const response = await fetch(endpoint || action, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -304,7 +328,7 @@ function attachReviewForms() {
       }
 
       try {
-        const response = await fetch("/api/review", {
+        const response = await fetch(getApiUrl(publicConfig.REVIEW_ENDPOINT || "/api/review"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ publishId, reviewer, rating, comment }),
@@ -347,7 +371,7 @@ async function renderLiveApps() {
   target.innerHTML = '<article class="surface-card project-card"><p>Loading live apps...</p></article>';
 
   try {
-    const response = await fetch("/api/live-apps");
+    const response = await fetch(getApiUrl(publicConfig.LIVE_APPS_ENDPOINT || "/api/live-apps"));
     const payload = await response.json();
     const apps = Array.isArray(payload.apps) ? payload.apps : [];
 

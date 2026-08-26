@@ -126,24 +126,6 @@ const mimeTypes = {
 
 loadDotEnv(path.join(rootDir, '.env'));
 
-const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_BOOTSTRAP_PIN || '2026';
-
-function isAdmin(req) {
-  try {
-    const headerPin = String(req.headers['x-admin-pin'] || '');
-    if (headerPin && headerPin === String(ADMIN_PIN)) return true;
-    const cookieHeader = req.headers.cookie || '';
-    const cookies = cookieHeader.split(';').map(c => c.trim()).filter(Boolean);
-    for (const c of cookies) {
-      const parts = c.split('=');
-      if (parts[0] === 'admin_pin' && parts[1] === String(ADMIN_PIN)) return true;
-    }
-  } catch (e) {
-    // ignore
-  }
-  return false;
-}
-
 function loadDotEnv(filePath) {
   if (!fs.existsSync(filePath)) {
     return;
@@ -177,6 +159,18 @@ function loadDotEnv(filePath) {
 
     process.env[key] = value;
   }
+}
+
+const PUBLIC_API_ORIGIN = process.env.PUBLIC_API_ORIGIN || '*';
+
+function corsHeaders(extraHeaders = {}) {
+  return {
+    ...extraHeaders,
+    'Access-Control-Allow-Origin': PUBLIC_API_ORIGIN,
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, x-admin-pin',
+    Vary: 'Origin',
+  };
 }
 
 function getPublicConfig() {
@@ -784,6 +778,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (requestPath === '/submit-project' && req.method === 'OPTIONS') {
+    res.writeHead(204, corsHeaders());
+    res.end();
+    return;
+  }
+
   if (requestPath === '/submit-project' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => {
@@ -849,10 +849,10 @@ const server = http.createServer(async (req, res) => {
 
         const acceptsHtml = (req.headers['accept'] || '').includes('text/html');
         if (acceptsHtml && !contentType.includes('application/json')) {
-          res.writeHead(302, { Location: '/contact.html?submitted=true#start-project-form' });
+          res.writeHead(302, corsHeaders({ Location: '/contact.html?submitted=true#start-project-form' }));
           res.end();
         } else {
-          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.writeHead(200, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
           res.end(JSON.stringify({ ok: true, message: 'Thanks. Your message was sent.' }));
         }
 
@@ -860,7 +860,7 @@ const server = http.createServer(async (req, res) => {
         dispatchEmailNotification(data);
       } catch (err) {
         console.error('Error processing submission:', err);
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(400, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
         res.end(JSON.stringify({ ok: false, error: 'Invalid submission data.' }));
       }
     });
@@ -1000,6 +1000,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (requestPath === '/api/live-apps' && req.method === 'OPTIONS') {
+    res.writeHead(204, corsHeaders());
+    res.end();
+    return;
+  }
+
   if (requestPath === '/api/live-apps' && req.method === 'GET') {
     ensurePublishedRoot();
     const apps = [];
@@ -1035,22 +1041,28 @@ const server = http.createServer(async (req, res) => {
     }
 
     apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.writeHead(200, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
     res.end(JSON.stringify({ ok: true, apps }));
+    return;
+  }
+
+  if (requestPath === '/api/reviews' && req.method === 'OPTIONS') {
+    res.writeHead(204, corsHeaders());
+    res.end();
     return;
   }
 
   if (requestPath === '/api/reviews' && req.method === 'GET') {
     const publishId = url.searchParams.get('publishId');
     if (!publishId) {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(400, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
       res.end(JSON.stringify({ ok: false, error: 'publishId query is required.' }));
       return;
     }
 
     const metaPath = path.join(publishedRoot, publishId, 'meta.json');
     if (!fs.existsSync(metaPath)) {
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(404, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
       res.end(JSON.stringify({ ok: false, error: 'App not found.' }));
       return;
     }
@@ -1059,15 +1071,21 @@ const server = http.createServer(async (req, res) => {
     try {
       meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
     } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(500, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
       res.end(JSON.stringify({ ok: false, error: 'Failed to read app metadata.' }));
       return;
     }
 
     const reviews = Array.isArray(meta.reviews) ? meta.reviews : [];
     const stats = computeReviewStats(reviews);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.writeHead(200, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
     res.end(JSON.stringify({ ok: true, reviews, averageRating: stats.averageRating, reviewCount: stats.reviewCount }));
+    return;
+  }
+
+  if (requestPath === '/api/review' && req.method === 'OPTIONS') {
+    res.writeHead(204, corsHeaders());
+    res.end();
     return;
   }
 
@@ -1081,20 +1099,20 @@ const server = http.createServer(async (req, res) => {
       const reviewer = String(data.reviewer || 'Anonymous').trim() || 'Anonymous';
 
       if (!publishId) {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(400, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
         res.end(JSON.stringify({ ok: false, error: 'publishId is required.' }));
         return;
       }
 
       if (!rating || rating < 1 || rating > 5) {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(400, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
         res.end(JSON.stringify({ ok: false, error: 'Rating must be a number between 1 and 5.' }));
         return;
       }
 
       const metaPath = path.join(publishedRoot, publishId, 'meta.json');
       if (!fs.existsSync(metaPath)) {
-        res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(404, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
         res.end(JSON.stringify({ ok: false, error: 'App not found.' }));
         return;
       }
@@ -1113,10 +1131,10 @@ const server = http.createServer(async (req, res) => {
       meta.reviewCount = stats.reviewCount;
       fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
 
-      res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(201, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
       res.end(JSON.stringify({ ok: true, review, averageRating: meta.averageRating, reviewCount: meta.reviewCount }));
     } catch (error) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.writeHead(500, corsHeaders({ 'Content-Type': 'application/json; charset=utf-8' }));
       res.end(JSON.stringify({ ok: false, error: String(error.message || error) }));
     }
     return;
@@ -1165,289 +1183,6 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: false, error: String(error.message || error) }));
-    }
-    return;
-  }
-
-  // Admin APIs for managing published app containers
-  if (requestPath === '/admin' && req.method === 'GET') {
-    const adminPath = path.join(rootDir, 'admin.html');
-    if (fs.existsSync(adminPath)) {
-      sendFile(res, adminPath);
-      return;
-    }
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Admin UI not found.');
-    return;
-  }
-
-  // Admin login to set cookie
-  if (requestPath === '/api/admin/login' && req.method === 'POST') {
-    let body = '';
-    req.on('data', (chunk) => { body += chunk.toString(); });
-    req.on('end', () => {
-      try {
-        const data = JSON.parse(body || '{}');
-        const pin = String(data.pin || '');
-        if (pin !== String(ADMIN_PIN)) {
-          res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ ok: false, error: 'invalid pin' }));
-          return;
-        }
-
-        const cookieFlags = [
-          `admin_pin=${encodeURIComponent(pin)}`,
-          'Path=/',
-          `Max-Age=${24 * 60 * 60}`,
-          'HttpOnly',
-          'SameSite=Strict',
-        ];
-        if (process.env.NODE_ENV === 'production') {
-          cookieFlags.push('Secure');
-        }
-        res.writeHead(200, {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Set-Cookie': cookieFlags.join('; '),
-        });
-        res.end(JSON.stringify({ ok: true }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
-      }
-    });
-    return;
-  }
-
-  // Admin Pipeline API (Demos/Ideas, Pricing & Links, Apps)
-  if (requestPath === '/api/admin/pipeline' && req.method === 'GET') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
-      return;
-    }
-    try {
-      const items = await getPipelineItems();
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: true, items }));
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
-    }
-    return;
-  }
-
-  if (requestPath === '/api/admin/pipeline' && req.method === 'POST') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
-      return;
-    }
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
-      try {
-        const data = JSON.parse(body || '{}');
-        const item = {
-          id: data.id || `lead_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-          stage: data.stage || 'demos_ideas',
-          name: String(data.name || 'Walk-in client').trim(),
-          email: String(data.email || '').trim(),
-          phone: String(data.phone || '').trim(),
-          company: String(data.company || '').trim(),
-          project_idea: String(data.project_idea || '').trim(),
-          project_goal: String(data.project_goal || '').trim(),
-          timeline: String(data.timeline || '').trim(),
-          additional_details: String(data.additional_details || '').trim(),
-          source: data.source || 'walk_in',
-          proposal_notes: String(data.proposal_notes || '').trim(),
-          demo_url: String(data.demo_url || '').trim(),
-          quote_amount: String(data.quote_amount || '').trim(),
-          scope_summary: String(data.scope_summary || '').trim(),
-          app_name: String(data.app_name || '').trim(),
-          live_url: String(data.live_url || '').trim(),
-          monthly_price: String(data.monthly_price || '').trim(),
-          status: data.status || 'new',
-          createdAt: data.createdAt || new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        const saved = await savePipelineItem(item);
-        res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true, item: saved }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
-      }
-    });
-    return;
-  }
-
-  if (requestPath === '/api/admin/pipeline' && req.method === 'PUT') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
-      return;
-    }
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
-      try {
-        const data = JSON.parse(body || '{}');
-        if (!data.id) {
-          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ ok: false, error: 'Item ID required.' }));
-          return;
-        }
-        const saved = await savePipelineItem(data);
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true, item: saved }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
-      }
-    });
-    return;
-  }
-
-  if (requestPath === '/api/admin/pipeline' && req.method === 'DELETE') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
-      return;
-    }
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
-      try {
-        const data = JSON.parse(body || '{}');
-        const urlParams = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`).searchParams;
-        const id = data.id || urlParams.get('id');
-        if (!id) {
-          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ ok: false, error: 'Item ID required.' }));
-          return;
-        }
-        await deletePipelineItem(id);
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
-      }
-    });
-    return;
-  }
-
-  if (requestPath === '/api/admin/apps' && req.method === 'GET') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
-      return;
-    }
-    ensurePublishedRoot();
-    const apps = [];
-    for (const item of fs.readdirSync(publishedRoot, { withFileTypes: true })) {
-      if (!item.isDirectory()) continue;
-      const appFolder = path.join(publishedRoot, item.name);
-      const metaPath = path.join(appFolder, 'meta.json');
-      let meta = null;
-      if (fs.existsSync(metaPath)) {
-        try {
-          meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-        } catch {
-          meta = null;
-        }
-      }
-
-      let containerStatus = null;
-      try {
-        if (meta && meta.container && meta.container.name) {
-          const inspect = child_process.execSync(`docker inspect -f '{{json .State}}' ${meta.container.name}`, { encoding: 'utf8' });
-          containerStatus = JSON.parse(inspect);
-        }
-      } catch (e) {
-        containerStatus = { error: String(e.message || e) };
-      }
-
-      apps.push({
-        publishId: item.name,
-        appName: meta?.appName || item.name,
-        description: meta?.description || '',
-        createdAt: meta?.createdAt || fs.statSync(appFolder).ctime.toISOString(),
-        liveUrl: meta?.liveUrl || `/live/${item.name}/`,
-        container: meta?.container || null,
-        lastAccess: meta?.lastAccess || null,
-        containerStatus,
-      });
-    }
-    apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ ok: true, apps }));
-    return;
-  }
-
-  if (requestPath === '/api/admin/stop' && req.method === 'POST') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
-      return;
-    }
-    let body = '';
-    req.on('data', (chunk) => { body += chunk.toString(); });
-    req.on('end', () => {
-      try {
-        const data = JSON.parse(body || '{}');
-        const publishId = String(data.publishId || '').trim();
-        if (!publishId) throw new Error('publishId required');
-        const metaPath = path.join(publishedRoot, publishId, 'meta.json');
-        if (!fs.existsSync(metaPath)) throw new Error('publishId not found');
-        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-        if (meta.container && meta.container.name) {
-          child_process.execSync(`docker stop ${meta.container.name}`, { stdio: 'ignore' });
-          child_process.execSync(`docker rm ${meta.container.name}`, { stdio: 'ignore' });
-          delete meta.container;
-          fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
-        }
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
-      }
-    });
-    return;
-  }
-
-  if (requestPath === '/api/admin/logs' && req.method === 'GET') {
-    if (!isAdmin(req)) {
-      res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
-      return;
-    }
-    const publishId = url.searchParams.get('publishId');
-    if (!publishId) {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'publishId query required' }));
-      return;
-    }
-    const metaPath = path.join(publishedRoot, publishId, 'meta.json');
-    if (!fs.existsSync(metaPath)) {
-      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'publishId not found' }));
-      return;
-    }
-    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-    if (!meta.container || !meta.container.name) {
-      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'No container for this app' }));
-      return;
-    }
-    try {
-      const logs = child_process.execSync(`docker logs --tail 200 ${meta.container.name}`, { encoding: 'utf8' });
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: true, logs }));
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: String(e.message || e) }));
     }
     return;
   }

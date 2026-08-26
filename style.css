@@ -198,17 +198,6 @@ code {
   color: var(--heading);
 }
 
-.site-nav a[href="admin.html"] {
-  color: #ffe5d0;
-  border: 1px solid rgba(255, 149, 0, 0.16);
-}
-
-.site-nav a[href="admin.html"]:hover,
-.site-nav a[href="admin.html"].active {
-  background: rgba(255, 149, 0, 0.14);
-  border-color: rgba(255, 149, 0, 0.3);
-}
-
 .nav-toggle {
   display: none;
   border: 0;

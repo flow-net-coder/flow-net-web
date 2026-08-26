@@ -1,2 +1,4 @@
 .env
+pipeline.json
+submissions.json
 node_modules/

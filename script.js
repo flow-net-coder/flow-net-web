@@ -1,8 +1,8 @@
 const PUBLIC_CONFIG_DEFAULTS = {
   SITE_NAME: "FLOW-NET",
-  SITE_URL: "https://flow-net-pro.up.railway.app",
+  SITE_URL: "https://www.flow-net.co.za",
   API_BASE_URL: "https://flow-net-pro.up.railway.app",
-  CONTACT_FORM_ENDPOINT: "https://flow-net-pro.up.railway.app/submit-project",
+  CONTACT_FORM_ENDPOINT: "https://formsubmit.co/ajax/info@flow-net.co.za",
   LIVE_APPS_ENDPOINT: "https://flow-net-pro.up.railway.app/api/live-apps",
   REVIEW_ENDPOINT: "https://flow-net-pro.up.railway.app/api/review",
   CONTACT_EMAIL: "info@flow-net.co.za",
@@ -126,6 +126,26 @@ function applyPublicConfig() {
   });
 }
 
+function showFormSuccessFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("submitted") !== "true") {
+    return;
+  }
+
+  const status = document.querySelector("[data-form-status]");
+  if (status) {
+    status.hidden = false;
+    status.dataset.state = "success";
+    status.textContent = "Thanks. Your message was sent.";
+  }
+
+  if (window.history && typeof window.history.replaceState === "function") {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("submitted");
+    window.history.replaceState({}, document.title, url.toString());
+  }
+}
+
 function applyNavigation() {
   if (!navToggle || !siteNav) {
     return;
@@ -195,7 +215,11 @@ async function submitEnhancedForm(form) {
   const action = form.getAttribute("action") || "";
   const endpoint = publicConfig.CONTACT_FORM_ENDPOINT || action;
   const method = (form.getAttribute("method") || "post").toUpperCase();
-  const body = Object.fromEntries(new FormData(form).entries());
+  const isFormSubmitAjax = /formsubmit\.co\/ajax/i.test(endpoint);
+  const body = isFormSubmitAjax ? new FormData(form) : Object.fromEntries(new FormData(form).entries());
+  const headers = isFormSubmitAjax
+    ? { Accept: "application/json" }
+    : { "Content-Type": "application/json" };
 
   if (submitButton) {
     submitButton.disabled = true;
@@ -205,8 +229,8 @@ async function submitEnhancedForm(form) {
   try {
     const response = await fetch(endpoint || action, {
       method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers,
+      body: isFormSubmitAjax ? body : JSON.stringify(body),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || payload.ok === false) {
@@ -227,6 +251,13 @@ async function submitEnhancedForm(form) {
 
 function enhanceForms() {
   document.querySelectorAll("form[data-enhance='true'], form[action*='submit-project']").forEach((form) => {
+    const action = String(form.getAttribute("action") || "");
+    const isFormSubmitAjax = /formsubmit\.co\/ajax/i.test(action);
+    const isFormSubmitPlain = /formsubmit\.co/i.test(action) && !isFormSubmitAjax;
+    if (isFormSubmitPlain) {
+      return;
+    }
+
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       submitEnhancedForm(form);
@@ -415,5 +446,6 @@ if (yearTarget) {
 applyPublicConfig();
 applyNavigation();
 applyRevealAnimations();
+showFormSuccessFromQuery();
 enhanceForms();
 initPageSpecificFeatures();

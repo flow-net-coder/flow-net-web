@@ -4,7 +4,7 @@ const PUBLIC_CONFIG_DEFAULTS = {
   WHATSAPP_URL: "https://wa.me/27659821883?text=Hi%20FLOW-NET%2C%20I%20want%20to%20talk%20about%20a%20project.",
   WHATSAPP_LABEL: "Chat on WhatsApp",
   API_BASE_URL: "https://www.flow-net.co.za",
-  CONTACT_FORM_ENDPOINT: "https://formsubmit.co/ajax/info@flow-net.co.za",
+  CONTACT_FORM_ENDPOINT: "https://www.flow-net.co.za/submit-project",
   LIVE_APPS_ENDPOINT: "https://www.flow-net.co.za/api/live-apps",
   REVIEW_ENDPOINT: "https://www.flow-net.co.za/api/review",
   CONTACT_EMAIL: "info@flow-net.co.za",

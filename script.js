@@ -151,14 +151,14 @@ function applyRevealAnimations() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("revealed");
+            requestAnimationFrame(() => entry.target.classList.add("revealed"));
             observer.unobserve(entry.target);
           }
         });
       },
       {
-        threshold: 0.12,
-        rootMargin: "0px 0px -24px 0px",
+        threshold: 0.01,
+        rootMargin: "0px 0px -8% 0px",
       }
     );
 

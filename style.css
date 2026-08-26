@@ -37,6 +37,9 @@ body {
     radial-gradient(circle at 50% 60%, rgba(255, 94, 0, 0.10), transparent 48%),
     linear-gradient(180deg, #110a0a 0%, #170e0e 40%, #0a0606 100%);
   line-height: 1.65;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body[data-page="home"] {
@@ -55,20 +58,19 @@ body[data-page="home"]::before {
 
 body[data-page="home"]::after {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   background:
     radial-gradient(circle at 18% 18%, rgba(45, 212, 191, 0.18), transparent 18%),
     radial-gradient(circle at 80% 12%, rgba(255, 149, 0, 0.16), transparent 22%),
     radial-gradient(circle at 75% 82%, rgba(255, 59, 48, 0.12), transparent 20%);
-  mix-blend-mode: screen;
   opacity: 0.85;
 }
 
 body::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   background-image:
@@ -109,6 +111,17 @@ h4 {
   font-family: "Space Grotesk", "Manrope", sans-serif;
 }
 
+@supports (text-wrap: balance) {
+  h1,
+  h2,
+  h3,
+  h4,
+  .lead,
+  .section-heading {
+    text-wrap: balance;
+  }
+}
+
 p {
   margin: 0 0 1rem;
 }
@@ -138,7 +151,7 @@ code {
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(10px);
   background: rgba(18, 11, 11, 0.85);
   border-bottom: 1px solid rgba(255, 94, 0, 0.12);
 }
@@ -210,13 +223,17 @@ code {
   color: var(--muted);
   padding: 0.78rem 1rem;
   border-radius: 999px;
-  transition: 180ms ease;
+  transition: transform 180ms ease, color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
 .site-nav a:hover,
 .site-nav a.active {
   color: var(--heading);
   background: rgba(255, 255, 255, 0.08);
+}
+
+.site-nav a:hover {
+  transform: translateY(-1px);
 }
 
 .site-nav .nav-cta {
@@ -242,6 +259,10 @@ code {
   border-radius: 999px;
   background: var(--heading);
   transition: 180ms ease;
+}
+
+.nav-toggle:hover span {
+  background: #fff;
 }
 
 main {
@@ -278,7 +299,7 @@ main {
   position: absolute;
   pointer-events: none;
   border-radius: 999px;
-  filter: blur(4px);
+  filter: blur(2px);
 }
 
 .hero-home::before {
@@ -314,6 +335,19 @@ main {
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 100%);
   opacity: 0.75;
   pointer-events: none;
+}
+
+.section-block {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
+.dashboard-panel,
+.surface-card,
+.cta-banner,
+.table-shell {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 420px;
 }
 
 .hero h1 {
@@ -368,11 +402,11 @@ main {
   border-radius: 999px;
   text-decoration: none;
   font-weight: 700;
-  transition: 180ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
 
 .button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .button-primary {
@@ -468,7 +502,8 @@ main {
 .surface-card:hover,
 .dashboard-panel:hover {
   border-color: rgba(255, 94, 0, 0.3);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
+  transform: translateY(-4px);
+  box-shadow: 0 34px 78px rgba(0, 0, 0, 0.52);
 }
 
 .dashboard-panel::before,
@@ -614,7 +649,7 @@ main {
 .section-heading::after {
   content: "";
   display: block;
-  width: 46px;
+  width: 64px;
   height: 3px;
   margin-top: 1.2rem;
   border-radius: 999px;
@@ -803,10 +838,12 @@ main {
   color: var(--accent);
   text-decoration: none;
   font-weight: 700;
+  transition: transform 180ms ease, color 180ms ease, opacity 180ms ease;
 }
 
 .text-link:hover {
   text-decoration: underline;
+  transform: translateX(2px);
 }
 
 .contact-list li {
@@ -830,6 +867,7 @@ main {
 .contact-list a {
   color: var(--heading);
   text-decoration: none;
+  transition: color 180ms ease, opacity 180ms ease;
 }
 
 .contact-list a:hover,
@@ -977,13 +1015,18 @@ main {
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 500ms ease, transform 500ms ease;
+  transform: translateY(12px);
+  transition: opacity 420ms ease, transform 420ms ease;
 }
 
 [data-reveal].revealed {
   opacity: 1;
   transform: translateY(0);
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid rgba(92, 255, 214, 0.8);
+  outline-offset: 3px;
 }
 
 @media (max-width: 1080px) {
@@ -1110,7 +1153,28 @@ main {
     padding: 1.2rem;
   }
 
+  [data-reveal] {
+    transform: translateY(8px);
+  }
+
   .button {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
   }
 }
